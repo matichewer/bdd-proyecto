@@ -18,16 +18,18 @@ public class ModeloImpl implements Modelo {
 	protected Connection conexion = null;
 
      /**
-	 * TODO Inicializar la propiedad "conexión" con una conexion establecida con el servidor de B.D.
+	 * 
 	 *      utilizando el método estático Connection getConection(username, password) de la clase vuelos.util.Conexion.  
 	 *      Retornar verdadero si se pudo establecer la conexión (conexion!= null) y falso en caso contrario
 	 */
 	@Override
 	public boolean conectar(String username, String password) {
 		logger.info("Se establece la conexión a la BD.");
+		this.conexion = Conexion.getConnection(username, password);        
+	    return (this.conexion != null);			
 		
 		// Código de prueba. Quitar y reemplazar por código que establece y retorna la conexión.             
-    	   return true;
+    	//   return true;
     	// fin código de prueba   
 	}
 

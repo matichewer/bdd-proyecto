@@ -2,6 +2,7 @@ package vuelos.modelo.empleado;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,30 +53,29 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 */
 		
 		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  		
-		this.legajo = 1;
-/*
-		boolean existe;
-		String sql = "SELECT * FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"');"
+		//this.legajo = 1;
+
+		boolean existe = false;
+		String sql = "SELECT * FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"')";
 		try { 
 			Statement select = conexion.createStatement();
 			ResultSet rs = select.executeQuery(sql);
 
-			if rs.next(){
-				logger.debug("Se logueo exitosamente con legajo y password");
+			if (rs.next()){
+				logger.debug("Se logueo exitosamente con legajo "+ rs.getString("legajo") + " y password " + rs.getString("password"));
 				existe = true;
 				this.legajo = Integer.parseInt(legajo);
 			} else {
-				logger.debug("Se logueo exitosamente con legajo y password");
+				logger.debug("No se pudo loguear con legajo "+ rs.getString("legajo") + " y password " + rs.getString("password"));
 				existe = false;
-				this.legajo = Integer.parseInt(legajo);
 			}
-
+			
 		} catch (SQLException ex) {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
 			logger.error("VendorError: " + ex.getErrorCode());
-			*/
-		return true;
+		}
+		return existe;
 		// Fin datos estáticos de prueba.
 	}
 	
