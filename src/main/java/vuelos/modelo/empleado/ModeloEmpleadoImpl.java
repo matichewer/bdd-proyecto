@@ -53,7 +53,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		
 		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  		
 		this.legajo = 1;
-
+/*
 		boolean existe;
 		String sql = "SELECT * FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"');"
 		try { 
@@ -74,7 +74,8 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
 			logger.error("VendorError: " + ex.getErrorCode());
-		return existe;
+			*/
+		return true;
 		// Fin datos estáticos de prueba.
 	}
 	
@@ -94,7 +95,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 */
 		String sql= "SELECT DISTINCT doc_tipo FROM pasajeros;";	  
 		ArrayList<String> tipos = new ArrayList<String>();
-		  
+		  /*
 		try{ 
 			Statement select = conexion.createStatement();
 		    ResultSet rs = select.executeQuery(sql);
@@ -110,7 +111,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		  }
 
 
-
+*/
 
 		//tipos.add("DNI");
 		//tipos.add("Pasaporte");
