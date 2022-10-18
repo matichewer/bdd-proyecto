@@ -22,4 +22,10 @@
 hs_err_pid*
 /target/
 
+
+
+# Agregados por Matias y Brenda
 log/
+.classpath
+.settings/org.eclipse.core.resources.prefs
+.project
