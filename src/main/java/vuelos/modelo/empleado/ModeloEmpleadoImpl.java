@@ -53,7 +53,28 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		
 		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  		
 		this.legajo = 1;
-		return true;
+
+		boolean existe;
+		String sql = "SELECT * FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"');"
+		try { 
+			Statement select = conexion.createStatement();
+			ResultSet rs = select.executeQuery(sql);
+
+			if rs.next(){
+				logger.debug("Se logueo exitosamente con legajo y password");
+				existe = true;
+				this.legajo = Integer.parseInt(legajo);
+			} else {
+				logger.debug("Se logueo exitosamente con legajo y password");
+				existe = false;
+				this.legajo = Integer.parseInt(legajo);
+			}
+
+		} catch (SQLException ex) {
+			logger.error("SQLException: " + ex.getMessage());
+			logger.error("SQLState: " + ex.getSQLState());
+			logger.error("VendorError: " + ex.getErrorCode());
+		return existe;
 		// Fin datos estáticos de prueba.
 	}
 	
@@ -71,9 +92,28 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *  Como no hay una tabla con los tipos de documento, se deberán recuperar todos los tipos validos
 		 *  de la tabla de pasajeros
 		 */
+		String sql= "SELECT DISTINCT doc_tipo FROM pasajeros;";	  
 		ArrayList<String> tipos = new ArrayList<String>();
-		tipos.add("DNI");
-		tipos.add("Pasaporte");
+		  
+		try{ 
+			Statement select = conexion.createStatement();
+		    ResultSet rs = select.executeQuery(sql);
+		   
+		    while (rs.next()) {
+		    	logger.debug("Se recupero el itme blabla");
+		    	tipos.add(rs.getString("doc_tipo"));
+		    }     
+		} catch (SQLException ex){   
+		   	logger.error("SQLException: " + ex.getMessage());
+		   	logger.error("SQLState: " + ex.getSQLState());
+		   	logger.error("VendorError: " + ex.getErrorCode());
+		  }
+
+
+
+
+		//tipos.add("DNI");
+		//tipos.add("Pasaporte");
 		// Fin datos estáticos de prueba.
 		
 		return tipos;
@@ -110,7 +150,9 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("barcelona"));
 		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("cordoba"));	
 		// Fin datos estáticos de prueba.
-	
+
+
+
 		return ubicaciones;
 	}
 
