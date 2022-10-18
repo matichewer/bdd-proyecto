@@ -95,13 +95,13 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 */
 		String sql= "SELECT DISTINCT doc_tipo FROM pasajeros;";	  
 		ArrayList<String> tipos = new ArrayList<String>();
-		  /*
+		  
 		try{ 
 			Statement select = conexion.createStatement();
 		    ResultSet rs = select.executeQuery(sql);
 		   
 		    while (rs.next()) {
-		    	logger.debug("Se recupero el itme blabla");
+		    	logger.debug("Se recuperaron los tipos de documentos ");
 		    	tipos.add(rs.getString("doc_tipo"));
 		    }     
 		} catch (SQLException ex){   
@@ -110,8 +110,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		   	logger.error("VendorError: " + ex.getErrorCode());
 		  }
 
-
-*/
 
 		//tipos.add("DNI");
 		//tipos.add("Pasaporte");
@@ -134,29 +132,49 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 
 	@Override
 	public ArrayList<UbicacionesBean> recuperarUbicaciones() throws Exception {
-		
-		logger.info("recupera las ciudades que tienen aeropuertos.");
-		/** 
-		 * TODO Debe retornar una lista de UbicacionesBean con todas las ubicaciones almacenadas en la B.D. 
-		 *      Deberia propagar una excepción si hay algún error en la consulta.
-		 *      
-		 *      Reemplazar el siguiente código de prueba por los datos obtenidos desde la BD.
-		 */
-		ArrayList<UbicacionesBean> ubicaciones = new ArrayList<UbicacionesBean>();
+	    
+	    logger.info("recupera las ciudades que tienen aeropuertos.");
+	    /** 
+	     * TODO Debe retornar una lista de UbicacionesBean con todas las ubicaciones almacenadas en la B.D. 
+	     *      Deberia propagar una excepción si hay algún error en la consulta.
+	     *      
+	     *      Reemplazar el siguiente código de prueba por los datos obtenidos desde la BD.
+	     */
+	ArrayList<UbicacionesBean> ubicaciones = new ArrayList<UbicacionesBean>();
+	    String sql = "SELECT * FROM ubicaciones";
 
-		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera las ubicaciones de la B.D. en una lista de UbicacionesBean		 
-		DAOUbicacionesDatosPrueba.poblar();
-		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("bsas"));
-		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("chicago"));
-		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("barcelona"));
-		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("cordoba"));	
-		// Fin datos estáticos de prueba.
+	    try{ 
+	      Statement select = conexion.createStatement();
+	        ResultSet rs = select.executeQuery(sql);
+	while (rs.next()) {
+	          logger.debug("Se recupero el itme blabla");
+	          UbicacionesBean ub = new UbicacionesBeanImpl();
+	          ub.setPais(rs.getString("pais"));
+	          ub.setEstado(rs.getString("estado"));
+	          ub.setCiudad(rs.getString("ciudad"));
+	          ub.setHuso(rs.getInt("huso"));
+	          ubicaciones.add(ub);
+	        }     
+	    } catch (SQLException ex){   
+	         logger.error("SQLException: " + ex.getMessage());
+	         logger.error("SQLState: " + ex.getSQLState());
+	    } 
+	       
+	// Datos estáticos de prueba. Quitar y reemplazar por código que recupera las ubicaciones de la B.D. en una lista de UbicacionesBean
+	      /*
+	    DAOUbicacionesDatosPrueba.poblar();
+	    ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("bsas"));
+	ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("chicago"));
+	    ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("barcelona"));
+	    ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("cordoba"));  
+
+	  */
+	    // Fin datos estáticos de prueba.
 
 
 
-		return ubicaciones;
-	}
-
+	    return ubicaciones;
+	  }
 
 	@Override
 	public ArrayList<InstanciaVueloBean> obtenerVuelosDisponibles(Date fechaVuelo, UbicacionesBean origen, UbicacionesBean destino) throws Exception {
