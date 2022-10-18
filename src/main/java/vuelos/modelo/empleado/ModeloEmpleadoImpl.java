@@ -158,6 +158,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	    } catch (SQLException ex){   
 	         logger.error("SQLException: " + ex.getMessage());
 	         logger.error("SQLState: " + ex.getSQLState());
+	         throw new Exception("Error en la conexion con la BD.");
 	    } 
 	       
 	// Datos estáticos de prueba. Quitar y reemplazar por código que recupera las ubicaciones de la B.D. en una lista de UbicacionesBean
