@@ -1,0 +1,158 @@
+INSERT INTO ubicaciones VALUES ("Argentina", "Buenos Aires", "Bahia Blanca",-4);
+INSERT INTO ubicaciones VALUES ("Bolivia", "Aroma", "Sica Sica",-3);
+INSERT INTO ubicaciones VALUES ("España", "Madrdid", "Madrid", 2);
+INSERT INTO ubicaciones VALUES ("Paraguay", "Alto Paraguay", "Fuerte Olimpo", 9);
+INSERT INTO ubicaciones VALUES ("Peru", "Bongara", "Jumbilla" ,12);
+INSERT INTO ubicaciones VALUES ("Chile", "Parinacota", "Putre" ,-8);
+INSERT INTO ubicaciones VALUES ("Alemania", "Berlin", "Berlin", -12);
+INSERT INTO ubicaciones VALUES ("Brasil", "Acre", "Rio Branco",3);
+INSERT INTO ubicaciones VALUES ("Colombia", "Valle de Aburrá", "Medellín",-5);
+
+INSERT INTO aeropuertos VALUES("Argentina", "Buenos Aires", "Bahia Blanca","1234","Comandante Espora","542913864850","Ex Ruta 3 Norte KM 675");
+INSERT INTO aeropuertos VALUES("Bolivia", "Aroma", "Sica Sica","3573","viru viru","59133385000","Av. G77");
+INSERT INTO aeropuertos VALUES("España", "Madrdid", "Madrid","2674","Ibiza","34913211000","Sant Antoni de Portmany 12");
+INSERT INTO aeropuertos VALUES("Paraguay", "Alto Paraguay", "Fuerte Olimpo","9489","Silvio Pettirossi","595216882000","Autop. Silvio Pettirossi");
+INSERT INTO aeropuertos VALUES("Peru", "Bongara", "Jumbilla" ,"1259","Jorge Chávez","5115173501","Av. Elmer Faucett");
+INSERT INTO aeropuertos VALUES("Chile", "Parinacota", "Putre" ,"8679","Araucanía","56452201901","Longitudinal Sur km 692");
+INSERT INTO aeropuertos VALUES("Alemania", "Berlin", "Berlin", "9902","Fráncfort del Meno","49696900","60547 Frankfurt");
+INSERT INTO aeropuertos VALUES("Brasil", "Acre", "Rio Branco","3430","Congonhas","551150909000","Av. Washington");
+INSERT INTO aeropuertos VALUES("Colombia", "Valle de Aburrá", "Medellín","5546","El Edén","5767479400","Cl. 23 #22-08, Armenia");
+
+INSERT INTO vuelos_programados VALUES("181","5546","9902" );
+INSERT INTO vuelos_programados VALUES("459","9902","3573");
+INSERT INTO vuelos_programados VALUES("098","1234","1259");
+INSERT INTO vuelos_programados VALUES("063","1259","2674");
+INSERT INTO vuelos_programados VALUES("782", "8679","1234");
+INSERT INTO vuelos_programados VALUES("144","3430","9489");
+INSERT INTO vuelos_programados VALUES("052","2674","1259");
+INSERT INTO vuelos_programados VALUES("863","9489","5546");
+INSERT INTO vuelos_programados VALUES("751 ","9902","9902");
+INSERT INTO vuelos_programados VALUES("014 ","5546","3430");
+INSERT INTO vuelos_programados VALUES("712", "2674","2674");
+INSERT INTO vuelos_programados VALUES("553","3430","3573");
+
+INSERT INTO modelos_avion VALUES("Airbus 319", "Airbus",4,180);
+INSERT INTO modelos_avion VALUES("Airbus 320","Airbus",3,110);
+INSERT INTO modelos_avion VALUES("Airbus 321","Airbus",6,234);
+INSERT INTO modelos_avion VALUES("Airbus 330 ","Airbus",4,170);
+INSERT INTO modelos_avion VALUES("Airbus 340", "Airbus",3,102);
+INSERT INTO modelos_avion VALUES("Boeing 737","Boeing",6,220);
+INSERT INTO modelos_avion VALUES("Boeing 777-200","Boeing",5,199);
+INSERT INTO modelos_avion VALUES("Boeing 747", "Boeing",3,145);
+INSERT INTO modelos_avion VALUES("Antonov 225 Mriya", "Antonov",2,79);
+INSERT INTO modelos_avion VALUES("Airbus 300-600 ST", "Airbus",3,99);
+
+INSERT INTO salidas  VALUES("144", 'Ju','17:00:00','20:30:59',"Airbus 319");
+INSERT INTO salidas  VALUES("063", 'Lu','18:45:00','21:25:00',"Boeing 737");
+INSERT INTO salidas  VALUES("863", 'Ma','20:45:00','22:21:00',"Airbus 320");
+INSERT INTO salidas  VALUES("459", 'Sa','07:00:00','12:15:00',"Airbus 330");
+INSERT INTO salidas  VALUES("052", 'Vi','14:00:00','18:10:00',"Antonov 225 Mriya");
+INSERT INTO salidas  VALUES("751", 'Lu','15:40:00','20:15:00',"Boeing 777-200");
+INSERT INTO salidas  VALUES("014", 'Mi','11:30:00','12:50:00',"Airbus 300-600 ST");
+INSERT INTO salidas  VALUES("181", 'Ju','19:25:00','21:40:00',"Boeing 737" );
+INSERT INTO salidas  VALUES("098", 'Vi','20:10:00','21:50:00',"Airbus 319");
+INSERT INTO salidas  VALUES("782", 'Ma','15:35:00','17:40:00',"Airbus 319");
+INSERT INTO salidas  VALUES("553", 'ju','14:40:00','16:45:00',"Airbus 321");
+INSERT INTO salidas  VALUES("712", 'Do','19:05:00','21:50:00',"Boeing 737"); 
+
+INSERT INTO instancias_vuelo VALUES("a tiempo",'2022-01-12',"144", 'Ju');
+INSERT INTO instancias_vuelo VALUES("demorado",'2022-11-05',"459", 'Sa');
+INSERT INTO instancias_vuelo VALUES("cancelado",'2022-02-10',"751", 'Lu');
+INSERT INTO instancias_vuelo VALUES("demorado",'2022-08-08',"863", 'Ma');
+INSERT INTO instancias_vuelo VALUES("a tiempo",'2022-09-03',"063", 'Lu');
+INSERT INTO instancias_vuelo VALUES("cancelado",'2022-05-07',"052", 'Vi');
+INSERT INTO instancias_vuelo VALUES("demorado",'2022-11-11',"014", 'Mi');
+INSERT INTO instancias_vuelo VALUES("demorado",'2022-05-08',"181", 'Ju');
+INSERT INTO instancias_vuelo VALUES("demorado",'2022-02-03',"098", 'Vi');
+INSERT INTO instancias_vuelo VALUES("a tiempo",'2022-06-08',"782", 'Ma');
+INSERT INTO instancias_vuelo VALUES("a tiempo",'2022-11-07',"553", 'ju');
+INSERT INTO instancias_vuelo VALUES("a tiempo",'2022-10-09',"712", 'Do');
+
+INSERT INTO clases VALUES("Turista",0.14);
+INSERT INTO clases VALUES("Ejecutiva",0.55);
+INSERT INTO clases VALUES("Primera",0.90);
+
+INSERT INTO comodidades VALUES(31,"desayuno, telivision, bebidas");
+INSERT INTO comodidades VALUES(12,"internet");
+INSERT INTO comodidades VALUES(22,"desayuno, bebidas");
+INSERT INTO comodidades VALUES(24,"almuerzo, telefono");
+INSERT INTO comodidades VALUES(39,"cena,television,bebidas");
+INSERT INTO comodidades VALUES(17,"desayuno");
+INSERT INTO comodidades VALUES(26,"almuerzo, internet"); 
+ 
+INSERT INTO pasajeros VALUES ("DNI-NIF",15896,"Martinez","Lautaro","Estomba 123","1597236","Argentino");
+INSERT INTO pasajeros VALUES ("Pasaporte nacional",286447,"Gomez","Raul","Alsina 45","1657932","Boliviano");
+INSERT INTO pasajeros VALUES ("CIF",17895,"Perez","Pablo","Lainez 345","16793276","Uruguayo");
+INSERT INTO pasajeros VALUES ("Pasaporte nacional",854965,"Moyano","Hugo","Alem 1789","244863","Argentino");
+INSERT INTO pasajeros VALUES ("CIF",8579652,"Cano","Lucia","San Martin 1256","1589635","Español");
+INSERT INTO pasajeros VALUES ("DNI",458963,"Solis","Maria","Lamadrid 126","1859631","Chileno");
+INSERT INTO pasajeros VALUES ("DNI",75642,"Riquelme","Juan","Rojas 467","269335","Argentino");
+INSERT INTO pasajeros VALUES ("DNI",78216,"Palermo","Romina","Chiclana 4678","158462","Italiano");
+INSERT INTO pasajeros VALUES ("DNI-NIF",756953,"Romero","julieta","Lavalle 2678","1521566","Peruano");
+INSERT INTO pasajeros VALUES ("DNI",58976,"Diaz","Catalina","Rodriguez 34","158933","Uruguayo");
+INSERT INTO pasajeros VALUES ("DNI-NIF",759326,"Alvarez","Manuel","Belgrano 1683","1526796","Brasilero");
+
+INSERT INTO empleados VALUES (1589,MD5("contra"),"DNI",4563265,"Vazquez","Lionel","Undiano 123","15486468543");
+INSERT INTO empleados VALUES (1668,MD5("hola"),"DNI",1578635,"Martin","Juan","Donado 577","79843");
+INSERT INTO empleados VALUES (17863,MD5("helado"),"Pasaporte nacional",1546845,"Jurado","Martina","Chile 1467","1655416548");
+INSERT INTO empleados VALUES (17666,MD5("chau"),"DNI",1546185,"Pantoja","Lorena","Misiones 12","51468543468");
+INSERT INTO empleados VALUES (13458,MD5("azul"),"DNI",1561555,"Esposito","Camila","French 467","2168465765");
+
+INSERT INTO reservas VALUES (144,'2022-11-12','2023-01-20',"Confirmada","DNI-NIF",15896,1589);
+INSERT INTO reservas VALUES (895,'2022-05-02','2022-07-02',"En espera","Pasaporte nacional",286447,1589);
+INSERT INTO reservas VALUES (156,'2022-07-10','2022-11-22',"Pagada","CIF",17895,1589);
+INSERT INTO reservas VALUES (1010,'2022-09-05','2022-12-12',"Pagada","Pasaporte nacional",854965,1589);
+INSERT INTO reservas VALUES (782,'2022-08-07','2022-11-30',"Confirmada","CIF",8579652,1589);
+INSERT INTO reservas VALUES (225,'2022-04-12','2022-07-14',"Confirmada","DNI",458963,1589);
+INSERT INTO reservas VALUES (1078,'2022-05-15','2022-08-12',"Pagada","DNI",75642,1589);
+INSERT INTO reservas VALUES (152,'2022-04-01','2022-07-22',"En espera","DNI",78216,1589);
+INSERT INTO reservas VALUES (95,'2022-07-12','2022-10-14',"Confirmada","DNI-NIF",756953,1589);
+INSERT INTO reservas VALUES (151,'2022-04-01','2022-07-22',"Confirmada","DNI",58976,1589);
+INSERT INTO reservas VALUES (98,'2022-07-12','2022-10-14',"Pagada","DNI-NIF",759326,1589);
+
+INSERT INTO brinda VALUES ("144", 'Ju',"Turista",154.25,180);
+INSERT INTO brinda VALUES ("063", 'Lu',"Primera",187.55,170);
+INSERT INTO brinda VALUES ("863", 'Ma',"Turista",196,95);
+INSERT INTO brinda VALUES ("459", 'Sa',"Ejecutiva",123.02,102);
+INSERT INTO brinda VALUES ("052", 'Vi',"Primera",750.03,185);
+INSERT INTO brinda VALUES ("751", 'Lu',"Primera",800,122);
+INSERT INTO brinda VALUES ("014", 'Mi',"Ejecutiva",401.25,140);
+INSERT INTO brinda VALUES ("181", 'Ju',"Ejecutiva",155.03,156);
+INSERT INTO brinda VALUES ("098", 'Vi',"Turista",170.80,145);
+INSERT INTO brinda VALUES ("782", 'Ma',"Turista",150.20,133);
+INSERT INTO brinda VALUES ("553", 'ju',"Turista",190.30,100);
+INSERT INTO brinda VALUES ("712", 'Do',"Turista",120,101);
+
+INSERT INTO posee VALUES ("Turista",31);
+INSERT INTO posee VALUES ("Primera",12);
+INSERT INTO posee VALUES ("Turista",22);
+INSERT INTO posee VALUES ("Ejecutiva",24);
+INSERT INTO posee VALUES ("Primera",39);
+INSERT INTO posee VALUES ("Primera",17);
+INSERT INTO posee VALUES ("Ejecutiva",26);
+
+INSERT INTO reserva_vuelo_clase VALUES (144, "144",'2022-01-12',"Turista");
+INSERT INTO reserva_vuelo_clase VALUES (895,"459",'2022-11-05',"Ejecutiva");
+INSERT INTO reserva_vuelo_clase VALUES (156,"751",'2022-02-10',"Turista");
+INSERT INTO reserva_vuelo_clase VALUES (1010,"863",'2022-08-08',"Ejecutiva");
+INSERT INTO reserva_vuelo_clase VALUES (782,"063",'2022-09-03',"Ejecutiva");
+INSERT INTO reserva_vuelo_clase VALUES (225,"052",'2022-05-07',"Turista");
+INSERT INTO reserva_vuelo_clase VALUES (1078,"014",'2022-11-11',"Primera");
+INSERT INTO reserva_vuelo_clase VALUES (98,"181",'2022-05-08',"Primera");
+INSERT INTO reserva_vuelo_clase VALUES (151,"098",'2022-02-03',"Primera");
+INSERT INTO reserva_vuelo_clase VALUES (95,"782",'2022-06-08',"Primera");
+INSERT INTO reserva_vuelo_clase VALUES (152,"553",'2022-11-07',"Primera");
+INSERT INTO reserva_vuelo_clase VALUES (1078,"712",'2022-10-09',"Primera");
+
+INSERT INTO asientos_reservados VALUES ("144",'2022-01-12',"Turista",50);
+INSERT INTO asientos_reservados VALUES ("459",'2022-11-05',"Ejecutiva",100);
+INSERT INTO asientos_reservados VALUES ("751",'2022-02-10',"Turista",22);
+INSERT INTO asientos_reservados VALUES ("863",'2022-08-08',"Ejecutiva",56);
+INSERT INTO asientos_reservados VALUES ("063",'2022-09-03',"Ejecutiva",18);
+INSERT INTO asientos_reservados VALUES ("052",'2022-05-07',"Turista",70);
+INSERT INTO asientos_reservados VALUES ("014",'2022-11-11',"Primera",21);
+INSERT INTO asientos_reservados VALUES ("181",'2022-05-08',"Primera",33);
+INSERT INTO asientos_reservados VALUES ("098",'2022-02-03',"Primera",54);
+INSERT INTO asientos_reservados VALUES ("782",'2022-06-08',"Primera",22);
+INSERT INTO asientos_reservados VALUES ("553",'2022-11-07',"Primera",85);
+INSERT INTO asientos_reservados VALUES ("712",'2022-10-09',"Primera",10);
