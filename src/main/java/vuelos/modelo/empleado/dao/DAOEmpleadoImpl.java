@@ -28,6 +28,7 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 
 	@Override
 	public EmpleadoBean recuperarEmpleado(int legajo) throws Exception {
+    	// DUDA: que se hace con cargo y nroSucursal?	        
 		logger.info("recupera el empleado que corresponde al legajo {}.", legajo);
 		
 		String sql = "SELECT * FROM empleados";
@@ -43,9 +44,8 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 	        	emp.setNombre(rs.getString("nombre"));
 	        	emp.setNroDocumento(rs.getInt("doc_nro"));
 	        	emp.setPassword(rs.getString("password"));
-	        	emp.setTelefono(Integer.toString(rs.getInt("telefono")));
-	        	emp.setTipoDocumento(rs.getString("doc_tipo"));
-	        	// falta cargo y nroScurusal	        	
+	        	emp.setTelefono(Long.toString(rs.getLong("telefono")));
+	        	emp.setTipoDocumento(rs.getString("doc_tipo"));	
 	        }      
 	    } catch (SQLException ex){   
 	         logger.error("SQLException: " + ex.getMessage());

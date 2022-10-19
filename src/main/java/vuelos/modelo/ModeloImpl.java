@@ -53,8 +53,8 @@ public class ModeloImpl implements Modelo {
 		ResultSet rs= null;		
 		try
 		{       
-		Statement stmt = conexion.createStatement();			
-		rs = stmt.executeQuery(sql);
+			Statement stmt = conexion.createStatement();			
+			rs = stmt.executeQuery(sql);
 		}
 		catch (SQLException ex){
 		   logger.error("SQLException: " + ex.getMessage());
