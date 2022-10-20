@@ -45,11 +45,15 @@ public class DAOVuelosImpl implements DAOVuelos {
 		 */
 		//Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
 		//ArrayList<InstanciaVueloBean> resultado = DAOVuelosDatosPrueba.generarVuelos(fechaVuelo);
-		ArrayList<InstanciaVueloBean> resultado = new ArrayList<InstanciaVueloBean>();
+		
 		String sql = "SELECT DISTINCT fecha, ciudad_sale, estado_sale, pais_sale, ciudad_llega, estado_llega, pais_llega, "
 				+ "nro_vuelo, modelo, dia_sale, hora_sale, hora_llega, tiempo_estimado, codigo_aero_sale, "
-				+ "codigo_aero_llega, nombre_aero_sale, nombre_aero_llega "
+				+ "codigo_aero_llega, nombre_aero_sale, nombre_aero_llega, "
+				+ "aero_sale.telefono AS aero_sale_telefono, aero_sale.direccion AS aero_sale_direccion, "
+				+ "aero_llega.telefono AS aero_llega_telefono, aero_llega.direccion AS aero_llega_direccion "
 				+ "FROM vuelos_disponibles "
+				+ "JOIN aeropuertos AS aero_sale ON aero_sale.codigo=codigo_aero_sale "
+				+ "JOIN aeropuertos AS aero_llega ON aero_llega.codigo=codigo_aero_llega "
 				+ "WHERE fecha='"+ Fechas.convertirDateADateSQL(fechaVuelo) + "' AND " +
 						"ciudad_sale='" + origen.getCiudad() + "' AND " +
 						"estado_sale='" + origen.getEstado() + "' AND " +
@@ -58,13 +62,14 @@ public class DAOVuelosImpl implements DAOVuelos {
 						"estado_llega='" + destino.getEstado() + "' AND " +
 						"pais_llega='" + destino.getPais() + "'";
 	
-		// DUDA: ¿hay que chequear que ya hayamos creado un objeto de tipo AeropuertoBean ?? si
-		// DUDA: ¿en el aeropuerto hay que setear telefono y direccion? si
+
+		ArrayList<InstanciaVueloBean> resultado = new ArrayList<InstanciaVueloBean>();
+		logger.debug("Ejecutando sentencia SQL: " + sql);
 		try { 
 			Statement stmt = conexion.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
-			logger.debug("Ejecutando sentencia SQL: " + sql);
 
+			ArrayList<AeropuertoBean> lista_aeropuertos = new ArrayList<AeropuertoBean>();
 			while (rs.next()){
 				InstanciaVueloBean inst_vuelo = new InstanciaVueloBeanImpl();
 				inst_vuelo.setModelo(rs.getString("modelo"));
@@ -75,17 +80,49 @@ public class DAOVuelosImpl implements DAOVuelos {
 				inst_vuelo.setHoraSalida(rs.getTime("hora_sale"));
 				inst_vuelo.setHoraLlegada(rs.getTime("hora_llega"));				
 
-				AeropuertoBean aero_origen = new AeropuertoBeanImpl(); 
-				aero_origen.setCodigo(rs.getString("codigo_aero_sale"));
-				aero_origen.setNombre(rs.getString("nombre_aero_sale"));
-				aero_origen.setUbicacion(origen);
-				inst_vuelo.setAeropuertoSalida(aero_origen);
 				
-				AeropuertoBean aero_destino = new AeropuertoBeanImpl();
-				aero_destino.setCodigo(rs.getString("codigo_aero_llega"));
-				aero_destino.setNombre(rs.getString("nombre_aero_llega"));
-				aero_destino.setUbicacion(destino);
-				inst_vuelo.setAeropuertoLlegada(aero_destino);
+				AeropuertoBean aero_sale;
+				String codigo_aero_sale = rs.getString("codigo_aero_sale");
+				boolean encontre = false;
+				for (int i=0; !encontre && i<lista_aeropuertos.size(); i++) {
+					aero_sale = lista_aeropuertos.get(i);
+					if(aero_sale.getCodigo().equals(codigo_aero_sale)) {
+						inst_vuelo.setAeropuertoSalida(aero_sale);
+						encontre = true;
+					}
+				}
+				if (!encontre){
+					aero_sale = new AeropuertoBeanImpl(); 	
+					aero_sale.setCodigo(codigo_aero_sale);
+					aero_sale.setNombre(rs.getString("nombre_aero_sale"));
+					aero_sale.setUbicacion(origen);
+					aero_sale.setDireccion(rs.getString("aero_sale_direccion"));
+					aero_sale.setTelefono(rs.getString("aero_sale_telefono"));
+					inst_vuelo.setAeropuertoSalida(aero_sale);
+					lista_aeropuertos.add(aero_sale);
+				}
+				
+
+				AeropuertoBean aero_llega;
+				String codigo_aero_llega = rs.getString("codigo_aero_llega");
+				encontre = false;
+				for (int i=0; !encontre && i<lista_aeropuertos.size(); i++) {
+					aero_llega = lista_aeropuertos.get(i);
+					if(aero_llega.getCodigo().equals(codigo_aero_llega)) {
+						inst_vuelo.setAeropuertoLlegada(aero_llega);
+						encontre = true;
+					}
+				}
+				if (!encontre){
+					aero_llega = new AeropuertoBeanImpl(); 	
+					aero_llega.setCodigo(codigo_aero_llega);
+					aero_llega.setNombre(rs.getString("nombre_aero_llega"));
+					aero_llega.setUbicacion(destino);
+					aero_llega.setDireccion("aero_llega_direccion");
+					aero_llega.setTelefono("aero_llega_telefono");
+					inst_vuelo.setAeropuertoLlegada(aero_llega);
+					lista_aeropuertos.add(aero_llega);
+				}
 				
 				resultado.add(inst_vuelo);				
 			}
@@ -122,16 +159,23 @@ public class DAOVuelosImpl implements DAOVuelos {
 
 
 		ArrayList<DetalleVueloBean> resultado = new ArrayList<DetalleVueloBean>();		
-		String sql = "SELECT precio, clase, asientos_disponibles FROM vuelos_disponibles" +
-					"WHERE nro_vuelo=" + nroVuelo + " AND modelo='" + modelo + "' AND dia_sale='" +
-					diaSalida + "' AND hora_sale='" + horaSalida + "' AND hora_llega='" + horaLlegada +
-					"' AND tiempo_estimado='" + tiempoEstimado + "' AND fechaVuelo='" + fechaVuelo +
-					"' AND codigo_aero_llega='" + codigoLlega + "' AND codigo_aero_sale='" + codigoSale;		
-
+		String sql = "SELECT precio, clase, asientos_disponibles " +
+					 "FROM vuelos_disponibles " +
+					 "WHERE nro_vuelo='" + nroVuelo + 
+					 "' AND modelo='" + modelo + 
+					 "' AND dia_sale='" + diaSalida +
+					 "' AND hora_sale='" + horaSalida +
+					 "' AND hora_llega='" + horaLlegada +
+					 "' AND tiempo_estimado='" + tiempoEstimado +
+					 "' AND fecha='" + fechaVuelo +
+					 "' AND codigo_aero_llega='" + codigoLlega +
+					 "' AND codigo_aero_sale='" + codigoSale + "'";
+		
+		logger.debug("Recuperando detalle vuelo: " + sql);	
+		
 		try { 
 			Statement stmt = conexion.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
-			logger.debug("Recuperando detalle vuelo: " + sql);
 
 			while (rs.next()){
 				DetalleVueloBean dvb = new DetalleVueloBeanImpl();
@@ -139,6 +183,7 @@ public class DAOVuelosImpl implements DAOVuelos {
 				dvb.setPrecio(rs.getFloat("precio"));
 				dvb.setClase(rs.getString("clase"));
 				dvb.setAsientosDisponibles(rs.getInt("asientos_disponibles"));
+				resultado.add(dvb);
 			}
 			
 		} catch (SQLException ex) {
@@ -151,16 +196,3 @@ public class DAOVuelosImpl implements DAOVuelos {
 		return resultado; 
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

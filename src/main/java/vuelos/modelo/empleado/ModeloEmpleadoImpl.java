@@ -74,7 +74,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
 			logger.error("VendorError: " + ex.getErrorCode());
-	         throw new Exception("Error en la conexion con la BD.");
+	        throw new Exception("Error en la conexion con la BD.");
 		}
 		return existe;
 	}
@@ -95,11 +95,11 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 */
 		String sql= "SELECT DISTINCT doc_tipo FROM pasajeros;";	  
 		ArrayList<String> tipos = new ArrayList<String>();
-		  
+		
+    	logger.debug("Se recuperaron los tipos de documentos: " + sql);		  
 		try{ 
 			Statement select = conexion.createStatement();
 		    ResultSet rs = select.executeQuery(sql);
-	    	logger.debug("Se recuperaron los tipos de documentos: " + sql);
 		   
 		    while (rs.next()) {
 		    	tipos.add(rs.getString("doc_tipo"));
@@ -141,11 +141,11 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	     */
 	    ArrayList<UbicacionesBean> ubicaciones = new ArrayList<UbicacionesBean>();
 	    String sql = "SELECT * FROM ubicaciones";
-
+	    
+	    logger.debug("Ejecuto la sentencia SQL: "+ sql);
 	    try{ 
 	    	Statement stmt = conexion.createStatement();
 	        ResultSet rs = stmt.executeQuery(sql);
-        	logger.debug("Ejecuto la sentencia SQL: "+ sql);
 	        while (rs.next()) {
 	        	UbicacionesBean ub = new UbicacionesBeanImpl();
 	        	ub.setPais(rs.getString("pais"));
@@ -155,10 +155,10 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	        	ubicaciones.add(ub);
 	        }     
 	    } catch (SQLException ex){   
-	        logger.error("SQLException: " + ex.getMessage());
+	    	logger.error("SQLException: " + ex.getMessage());
 	        logger.error("SQLState: " + ex.getSQLState());
 		   	logger.error("VendorError: " + ex.getErrorCode());
-	         throw new Exception("Error en la conexion con la BD.");
+	        throw new Exception("Error en la conexion con la BD.");
 	    } 
 	       
 	// Datos estáticos de prueba. Quitar y reemplazar por código que recupera las ubicaciones de la B.D. en una lista de UbicacionesBean
@@ -171,8 +171,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 
 	  */
 	    // Fin datos estáticos de prueba.
-
-
 
 	    return ubicaciones;
 	  }

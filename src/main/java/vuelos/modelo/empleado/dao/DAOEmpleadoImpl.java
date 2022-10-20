@@ -35,6 +35,7 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 	    try{ 
 	    	Statement select = conexion.createStatement();
 	        ResultSet rs = select.executeQuery(sql);
+	        logger.debug("recuperarEmpleado: " + sql);
 	        if (rs.next()) {
 	        	emp = new EmpleadoBeanImpl();
 	        	emp.setApellido(rs.getString("apellido"));
