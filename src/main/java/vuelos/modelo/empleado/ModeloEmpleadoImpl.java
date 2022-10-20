@@ -56,7 +56,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		//this.legajo = 1;
 
 		boolean existe = false;
-		String sql = "SELECT * FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"')";
+		String sql = "SELECT legajo, password FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"')";
 		try { 
 			Statement select = conexion.createStatement();
 			ResultSet rs = select.executeQuery(sql);
@@ -74,6 +74,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
 			logger.error("VendorError: " + ex.getErrorCode());
+	         throw new Exception("Error en la conexion con la BD.");
 		}
 		return existe;
 	}
@@ -131,7 +132,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 
 	@Override
 	public ArrayList<UbicacionesBean> recuperarUbicaciones() throws Exception {
-	    // DUDA: ¿solo las ubicaciones que tienen aeropuertos? ¿todas las ubicaciones tienen aeropuertos?
 	    logger.info("recupera las ciudades que tienen aeropuertos.");
 	    /** 
 	     * TODO Debe retornar una lista de UbicacionesBean con todas las ubicaciones almacenadas en la B.D. 
@@ -155,8 +155,9 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	        	ubicaciones.add(ub);
 	        }     
 	    } catch (SQLException ex){   
-	         logger.error("SQLException: " + ex.getMessage());
-	         logger.error("SQLState: " + ex.getSQLState());
+	        logger.error("SQLException: " + ex.getMessage());
+	        logger.error("SQLState: " + ex.getSQLState());
+		   	logger.error("VendorError: " + ex.getErrorCode());
 	         throw new Exception("Error en la conexion con la BD.");
 	    } 
 	       

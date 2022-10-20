@@ -21,6 +21,8 @@ import vuelos.modelo.empleado.beans.UbicacionesBean;
 import vuelos.modelo.empleado.beans.UbicacionesBeanImpl;
 import vuelos.modelo.empleado.dao.datosprueba.DAOVuelosDatosPrueba;
 
+import vuelos.utils.Fechas;
+
 public class DAOVuelosImpl implements DAOVuelos {
 
 	private static Logger logger = LoggerFactory.getLogger(DAOVuelosImpl.class);
@@ -34,7 +36,6 @@ public class DAOVuelosImpl implements DAOVuelos {
 
 	@Override
 	public ArrayList<InstanciaVueloBean> recuperarVuelosDisponibles(Date fechaVuelo, UbicacionesBean origen, UbicacionesBean destino) throws Exception{
-		// DUDA: ¿hay que chequear que ya hayamos creado un objeto de tipo AeropuertoBean ??
 		/** 
 		 * TODO Debe retornar una lista de vuelos disponibles para ese día con origen y destino según los parámetros. 
 		 *      Debe propagar una excepción si hay algún error en la consulta.    
@@ -45,18 +46,20 @@ public class DAOVuelosImpl implements DAOVuelos {
 		//Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
 		//ArrayList<InstanciaVueloBean> resultado = DAOVuelosDatosPrueba.generarVuelos(fechaVuelo);
 		ArrayList<InstanciaVueloBean> resultado = new ArrayList<InstanciaVueloBean>();
-		String sql = "SELECT fecha, ciudad_sale, estado_sale, pais_sale, ciudad_llega, estado_llega, pais_llega, "
+		String sql = "SELECT DISTINCT fecha, ciudad_sale, estado_sale, pais_sale, ciudad_llega, estado_llega, pais_llega, "
 				+ "nro_vuelo, modelo, dia_sale, hora_sale, hora_llega, tiempo_estimado, codigo_aero_sale, "
 				+ "codigo_aero_llega, nombre_aero_sale, nombre_aero_llega "
 				+ "FROM vuelos_disponibles "
-				+ "WHERE fecha='"+ fechaVuelo + "' AND " +
+				+ "WHERE fecha='"+ Fechas.convertirDateADateSQL(fechaVuelo) + "' AND " +
 						"ciudad_sale='" + origen.getCiudad() + "' AND " +
 						"estado_sale='" + origen.getEstado() + "' AND " +
 						"pais_sale='" + origen.getPais() + "' AND " +
 						"ciudad_llega='" + destino.getCiudad() + "' AND " +
-						"estado_sale='" + destino.getEstado() + "' AND " +
-						"pais_sale='" + destino.getPais() + "'";
+						"estado_llega='" + destino.getEstado() + "' AND " +
+						"pais_llega='" + destino.getPais() + "'";
 	
+		// DUDA: ¿hay que chequear que ya hayamos creado un objeto de tipo AeropuertoBean ?? si
+		// DUDA: ¿en el aeropuerto hay que setear telefono y direccion? si
 		try { 
 			Statement stmt = conexion.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
@@ -107,8 +110,23 @@ public class DAOVuelosImpl implements DAOVuelos {
 		 */
 		//Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
 		//ArrayList<DetalleVueloBean> resultado = DAOVuelosDatosPrueba.generarDetalles(vuelo);
+		String nroVuelo = vuelo.getNroVuelo();
+		String modelo = vuelo.getModelo();	
+		String diaSalida = vuelo.getDiaSalida();
+		String horaSalida = vuelo.getHoraSalida().toString();
+		String horaLlegada = vuelo.getHoraLlegada().toString();
+		String tiempoEstimado = vuelo.getTiempoEstimado().toString();
+		Date fechaVuelo = Fechas.convertirDateADateSQL(vuelo.getFechaVuelo());
+		String codigoLlega = vuelo.getAeropuertoLlegada().getCodigo();
+		String codigoSale = vuelo.getAeropuertoSalida().getCodigo();
+
+
 		ArrayList<DetalleVueloBean> resultado = new ArrayList<DetalleVueloBean>();		
-		String sql = "SELECT precio, clase, asientos_disponibles FROM vuelos_disponibles";		
+		String sql = "SELECT precio, clase, asientos_disponibles FROM vuelos_disponibles" +
+					"WHERE nro_vuelo=" + nroVuelo + " AND modelo='" + modelo + "' AND dia_sale='" +
+					diaSalida + "' AND hora_sale='" + horaSalida + "' AND hora_llega='" + horaLlegada +
+					"' AND tiempo_estimado='" + tiempoEstimado + "' AND fechaVuelo='" + fechaVuelo +
+					"' AND codigo_aero_llega='" + codigoLlega + "' AND codigo_aero_sale='" + codigoSale;		
 
 		try { 
 			Statement stmt = conexion.createStatement();
