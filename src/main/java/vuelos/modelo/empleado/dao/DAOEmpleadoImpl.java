@@ -33,8 +33,8 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 		String sql = "SELECT * FROM empleados WHERE legajo=" + legajo;
     	EmpleadoBean emp = null;
 	    try{ 
-	    	Statement select = conexion.createStatement();
-	        ResultSet rs = select.executeQuery(sql);
+	    	Statement stmt = conexion.createStatement();
+	        ResultSet rs = stmt.executeQuery(sql);
 	        logger.debug("recuperarEmpleado: " + sql);
 	        if (rs.next()) {
 	        	emp = new EmpleadoBeanImpl();
@@ -46,7 +46,10 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 	        	emp.setPassword(rs.getString("password"));
 	        	emp.setTelefono(rs.getString("telefono"));
 	        	emp.setTipoDocumento(rs.getString("doc_tipo"));	
-	        }      
+	        }   
+	        
+	        stmt.close();
+	        rs.close();
 	    } catch (SQLException ex){   
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());

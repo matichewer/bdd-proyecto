@@ -55,8 +55,8 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		boolean existe = false;
 		String sql = "SELECT legajo, password FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"')";
 		try { 
-			Statement select = conexion.createStatement();
-			ResultSet rs = select.executeQuery(sql);
+			Statement stmt = conexion.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
 
 			if (rs.next()){
 				logger.debug("Se logueo exitosamente con legajo "+ rs.getString("legajo") + " y password " + rs.getString("password"));
@@ -67,6 +67,8 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 				existe = false;
 			}
 			
+			stmt.close();
+			rs.close();
 		} catch (SQLException ex) {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
@@ -89,12 +91,15 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		
     	logger.debug("Se recuperaron los tipos de documentos: " + sql);		  
 		try{ 
-			Statement select = conexion.createStatement();
-		    ResultSet rs = select.executeQuery(sql);
+			Statement stmt = conexion.createStatement();
+		    ResultSet rs = stmt.executeQuery(sql);
 		   
 		    while (rs.next()) {
 		    	tipos.add(rs.getString("doc_tipo"));
 		    }     
+		    
+		    stmt.close();
+		    rs.close();
 		} catch (SQLException ex){   
 		   	logger.error("SQLException: " + ex.getMessage());
 		   	logger.error("SQLState: " + ex.getSQLState());
@@ -139,7 +144,10 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	        	ub.setCiudad(rs.getString("ciudad"));
 	        	ub.setHuso(rs.getInt("huso"));
 	        	ubicaciones.add(ub);
-	        }     
+	        }  
+	        
+	        stmt.close();
+	        rs.close();
 	    } catch (SQLException ex){   
 	    	logger.error("SQLException: " + ex.getMessage());
 	        logger.error("SQLState: " + ex.getSQLState());

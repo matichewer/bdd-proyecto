@@ -75,8 +75,7 @@ public class ModeloImpl implements Modelo {
 		try
 		{       
 			Statement stmt = this.conexion.createStatement();
-			stmt.executeUpdate(sql);
-				
+			stmt.executeUpdate(sql);				
 			stmt.close();
 		}
 		catch (SQLException ex){

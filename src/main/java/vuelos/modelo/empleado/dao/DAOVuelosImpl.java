@@ -125,6 +125,9 @@ public class DAOVuelosImpl implements DAOVuelos {
 				resultado.add(inst_vuelo);				
 			}
 			
+			stmt.close();
+			rs.close();
+			
 		} catch (SQLException ex) {
 			logger.error("SQLException: " + ex.getMessage());
 			logger.error("SQLState: " + ex.getSQLState());
@@ -182,6 +185,9 @@ public class DAOVuelosImpl implements DAOVuelos {
 				dvb.setAsientosDisponibles(rs.getInt("asientos_disponibles"));
 				resultado.add(dvb);
 			}
+			
+			stmt.close();
+			rs.close();
 			
 		} catch (SQLException ex) {
 			logger.error("SQLException: " + ex.getMessage());
