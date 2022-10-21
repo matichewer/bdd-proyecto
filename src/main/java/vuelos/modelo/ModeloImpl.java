@@ -29,9 +29,7 @@ public class ModeloImpl implements Modelo {
 		this.conexion = Conexion.getConnection(username, password);        
 	    return (this.conexion != null);			
 		
-		// Código de prueba. Quitar y reemplazar por código que establece y retorna la conexión.             
-    	//   return true;
-    	// fin código de prueba   
+	
 	}
 
 	@Override

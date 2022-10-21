@@ -43,8 +43,6 @@ public class DAOVuelosImpl implements DAOVuelos {
 		 *      Nota: para acceder a la B.D. utilice la propiedad "conexion" que ya tiene una conexión
 		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOVuelosImpl(...)).  
 		 */
-		//Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
-		//ArrayList<InstanciaVueloBean> resultado = DAOVuelosDatosPrueba.generarVuelos(fechaVuelo);
 		
 		String sql = "SELECT DISTINCT fecha, ciudad_sale, estado_sale, pais_sale, ciudad_llega, estado_llega, pais_llega, "
 				+ "nro_vuelo, modelo, dia_sale, hora_sale, hora_llega, tiempo_estimado, codigo_aero_sale, "
@@ -145,8 +143,7 @@ public class DAOVuelosImpl implements DAOVuelos {
 		 *      Nota: para acceder a la B.D. utilice la propiedad "conexion" que ya tiene una conexión
 		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOVuelosImpl(...)).
 		 */
-		//Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
-		//ArrayList<DetalleVueloBean> resultado = DAOVuelosDatosPrueba.generarDetalles(vuelo);
+		
 		String nroVuelo = vuelo.getNroVuelo();
 		String modelo = vuelo.getModelo();	
 		String diaSalida = vuelo.getDiaSalida();

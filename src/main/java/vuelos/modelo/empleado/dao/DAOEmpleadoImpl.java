@@ -64,26 +64,8 @@ public class DAOEmpleadoImpl implements DAOEmpleado {
 		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOEmpleadoImpl(...)). 
 		 */		
 		
-		/*
-		 * Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  
-		 */	
-	    /*
-		EmpleadoBean empleado = null;
-		
-		empleado = new EmpleadoBeanImpl();
-		empleado.setLegajo(9);
-		empleado.setApellido("ApEmp9");
-		empleado.setNombre("NomEmp9");
-		empleado.setTipoDocumento("DNI");
-		empleado.setNroDocumento(9);
-		empleado.setDireccion("DirEmp9");
-		empleado.setTelefono("999-9999");
-		empleado.setCargo("Empleado de Prestamos");
-		empleado.setPassword("45c48cce2e2d7fbdea1afc51c7c6ad26"); // md5(9);
-		empleado.setNroSucursal(7);
-		*/
 		return emp;
-		// Fin datos estáticos de prueba.
+		
 	}
 
 }

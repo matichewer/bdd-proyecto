@@ -51,9 +51,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      Si la autenticación no es exitosa porque el legajo no es válido o el password es incorrecto
 		 *      deberá retornar falso y si hubo algún otro error deberá producir y propagar una excepción.
 		 */
-		
-		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  		
-		//this.legajo = 1;
 
 		boolean existe = false;
 		String sql = "SELECT legajo, password FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"')";
@@ -87,12 +84,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      Deberia propagar una excepción si hay algún error en la consulta.
 		 */
 		
-		/*
-		 * Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales. 
-		 * 
-		 *  Como no hay una tabla con los tipos de documento, se deberán recuperar todos los tipos validos
-		 *  de la tabla de pasajeros
-		 */
 		String sql= "SELECT DISTINCT doc_tipo FROM pasajeros;";	  
 		ArrayList<String> tipos = new ArrayList<String>();
 		
@@ -109,11 +100,6 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		   	logger.error("SQLState: " + ex.getSQLState());
 		   	logger.error("VendorError: " + ex.getErrorCode());
 		  }
-
-
-		//tipos.add("DNI");
-		//tipos.add("Pasaporte");
-		// Fin datos estáticos de prueba.
 		
 		return tipos;
 	}		
@@ -161,16 +147,7 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 	        throw new Exception("Error en la conexion con la BD.");
 	    } 
 	       
-	// Datos estáticos de prueba. Quitar y reemplazar por código que recupera las ubicaciones de la B.D. en una lista de UbicacionesBean
-	      /*
-	    DAOUbicacionesDatosPrueba.poblar();
-	    ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("bsas"));
-		ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("chicago"));
-	    ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("barcelona"));
-	    ubicaciones.add(DAOUbicacionesDatosPrueba.obtenerUbicacion("cordoba"));  
 
-	  */
-	    // Fin datos estáticos de prueba.
 
 	    return ubicaciones;
 	  }
