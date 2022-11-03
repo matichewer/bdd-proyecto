@@ -52,28 +52,34 @@ public class ModeloEmpleadoImpl extends ModeloImpl implements ModeloEmpleado {
 		 *      deberá retornar falso y si hubo algún otro error deberá producir y propagar una excepción.
 		 */
 
-		boolean existe = false;
-		String sql = "SELECT legajo, password FROM empleados WHERE legajo="+legajo+" AND password=md5('"+password+"')";
-		try { 
-			Statement stmt = conexion.createStatement();
-			ResultSet rs = stmt.executeQuery(sql);
+		boolean existe = false;		
 
-			if (rs.next()){
-				logger.debug("Se logueo exitosamente con legajo "+ rs.getString("legajo") + " y password " + rs.getString("password"));
-				existe = true;
-				this.legajo = Integer.parseInt(legajo);
-			} else {
-				logger.debug("No se pudo loguear con legajo "+ rs.getString("legajo") + " y password " + rs.getString("password"));
-				existe = false;
+		if (legajo.isEmpty() || legajo == null || password.isEmpty() || password == null) {
+			logger.debug("Legajo/password vacio");
+		} else {			
+			try { 
+				String sql = "SELECT legajo, password FROM empleados WHERE legajo=? and password=md5(?)";
+				PreparedStatement stmt = conexion.prepareStatement(sql);
+				stmt.setInt(1, Integer.parseInt(legajo));
+				stmt.setString(2, password);			
+				ResultSet rs = stmt.executeQuery();			
+							
+				if (rs.next()){
+					existe = true;
+					this.legajo = Integer.parseInt(legajo);
+					logger.debug("Logueo exitoso");;
+				} else {
+					logger.debug("Legajo/password incorrecto");;
+				}
+				
+				stmt.close();
+				rs.close();
+			} catch (SQLException ex) {
+				logger.error("SQLException: " + ex.getMessage());
+				logger.error("SQLState: " + ex.getSQLState());
+				logger.error("VendorError: " + ex.getErrorCode());
+		        throw new Exception("Error en la conexion con la BD.");
 			}
-			
-			stmt.close();
-			rs.close();
-		} catch (SQLException ex) {
-			logger.error("SQLException: " + ex.getMessage());
-			logger.error("SQLState: " + ex.getSQLState());
-			logger.error("VendorError: " + ex.getErrorCode());
-	        throw new Exception("Error en la conexion con la BD.");
 		}
 		return existe;
 	}

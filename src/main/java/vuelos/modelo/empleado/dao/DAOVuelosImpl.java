@@ -148,28 +148,14 @@ public class DAOVuelosImpl implements DAOVuelos {
 		 */
 		
 		String nroVuelo = vuelo.getNroVuelo();
-		String modelo = vuelo.getModelo();	
-		String diaSalida = vuelo.getDiaSalida();
-		String horaSalida = vuelo.getHoraSalida().toString();
-		String horaLlegada = vuelo.getHoraLlegada().toString();
-		String tiempoEstimado = vuelo.getTiempoEstimado().toString();
 		Date fechaVuelo = Fechas.convertirDateADateSQL(vuelo.getFechaVuelo());
-		String codigoLlega = vuelo.getAeropuertoLlegada().getCodigo();
-		String codigoSale = vuelo.getAeropuertoSalida().getCodigo();
 
 
 		ArrayList<DetalleVueloBean> resultado = new ArrayList<DetalleVueloBean>();		
 		String sql = "SELECT precio, clase, asientos_disponibles " +
 					 "FROM vuelos_disponibles " +
 					 "WHERE nro_vuelo='" + nroVuelo + 
-					 "' AND modelo='" + modelo + 
-					 "' AND dia_sale='" + diaSalida +
-					 "' AND hora_sale='" + horaSalida +
-					 "' AND hora_llega='" + horaLlegada +
-					 "' AND tiempo_estimado='" + tiempoEstimado +
-					 "' AND fecha='" + fechaVuelo +
-					 "' AND codigo_aero_llega='" + codigoLlega +
-					 "' AND codigo_aero_sale='" + codigoSale + "'";
+					 "' AND fecha='" + fechaVuelo + "'";
 		
 		logger.debug("Recuperando detalle vuelo: " + sql);	
 		
