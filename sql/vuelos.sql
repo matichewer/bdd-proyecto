@@ -150,9 +150,9 @@ CREATE TABLE empleados(
 	password VARCHAR(32) NOT NULL,
 	doc_tipo VARCHAR(45) NOT NULL,
 	doc_nro INT UNSIGNED NOT NULL,
-	apellido VARCHAR(20) NOT NULL,
-	nombre VARCHAR(20) NOT NULL,
-	direccion VARCHAR(40) NOT NULL,
+	apellido VARCHAR(20) NOT NULL, Y
+	nombre VARCHAR(20) NOT NULL, 
+	direccion VARCHAR(40) NOT NULL, Y
 	telefono VARCHAR(15) NOT NULL,
 
 	CONSTRAINT pk_empleados
@@ -340,3 +340,110 @@ GRANT INSERT,DELETE,UPDATE ON vuelos.reserva_vuelo_clase TO  'empleado'@'%';
 # Creamos el usuario cliente
 CREATE USER 'cliente'@'%' IDENTIFIED BY 'cliente';
 GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%'
+
+
+
+
+
+##############################################################################
+#							STORED PROCEDURES								 #
+##############################################################################
+
+delimiter !
+CREATE PROCEDURE reservaSoloIda
+	(IN num_vuelo INT, IN fecha DATE, IN clase VARCHAR(45), IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
+BEGIN	
+
+	# Manejo de excepciones
+	DECLARE codigo_SQL CHAR(5) DEFAULT '00000';
+	DECLARE codigo_MYSQL INT DEFAULT 0;
+	DECLARE mensaje_error TEXT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+			GET DIAGNOSTICS CONDITION 1
+				codigo_MYSQL = MYSQL_ERRNO,
+				codigo_SQL = RETURNED_SQLSTATE,
+				mensaje_error = MESSAGE_TEXT;
+			SELECT 'SQLEXCEPTION: transaccion abortada' AS resultado, codigo_MYSQL, codigo_SQL, mensaje_error;
+			ROLLBACK;
+		END;
+	
+	START TRANSACTION;
+
+		DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
+		DECLARE asientos_disponibles, cant_de_reservas INT;
+		DECLARE vencimiento DATE;
+		
+		# Verificamos que existan los datos recibidos por parámetro
+		IF EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = num_vuelo) AND (iv.fecha = fecha) THEN
+			IF EXISTS (SELECT * FROM brinda AS b WHERE (b.clase = clase) AND (b.vuelo = num_vuelo)) THEN
+				IF EXISTS (SELECT * FROM pasajeros AS p WHERE (p.doc_tipo = doc_tipo) AND (p.doc_nro = doc_nro)) THEN
+					IF EXISTS (SELECT * FROM empleados AS e WHERE (e.legajo = legajo)) THEN
+
+						# Bloqueamos en modo exclusivo la fila en cuestion
+						SELECT *		
+						FROM asientos_reservados AS a_reservados
+						WHERE ((a_reservados.clase = clase) AND
+								(a_reservados.fecha = fecha) AND
+								(a_reservados.vuelo = num_vuelo))
+						FOR UPDATE;
+						
+						# Obtenemos los asientos disponibles de la VISTA que creamos
+						SET asientos_disponibles = (SELECT asientos_disponibles 
+														FROM vuelos_disponibles AS vuelos_disp
+														WHERE ((vuelos_disp.vuelo = num_vuelo) AND 
+																(vuelos_disp.fecha = fecha) AND 
+																(vuelos_disp.clase = clase)));
+
+						IF (asientos_disponibles > 0) THEN			
+							SET cant_de_reservas = (SELECT cantidad 
+														FROM asientos_reservados AS a_reservados
+														WHERE ((a_reservados.clase = clase) AND
+																(a_reservados.fecha = fecha) AND
+																(a_reservados.vuelo = num_vuelo));
+							
+							# Seteamos el estado de la reserva
+							IF (cant_de_reservas < asientos_disponibles) THEN
+								SET estado_reserva = 'Confirmada';
+							END IF;							
+
+
+							SET vencimiento = (SELECT DATE_SUB(fecha, INTERVAL 15 DAY));
+							# Insertamos en las tablas correspondientes (recordar es solo viaje de ida)
+							INSERT INTO reservas (fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) 
+									VALUES (SELECT CURDATE(), vencimiento, estado_reserva, doc_tipo, doc_nro, legajo);
+
+							INSERT INTO reserva_vuelo_clase (vuelo, fecha, clase)
+									VALUES (SELECT LAST_INSERT_ID(), fecha, clase);
+
+							SELECT 'Se registro la reserva exitosamente: ' AS resultado, estado_reserva;
+							
+							
+							UPDATE asientos_reservados AS a_reservados
+							SET cantidad = cantidad + 1
+							WHERE ((a_reservados.clase = clase) AND
+									(a_reservados.fecha = fecha) AND
+									(a_reservados.vuelo = num_vuelo));
+
+						ELSE
+							SELECT 'ERROR: no hay disponibilidad para ese vuelo y clase' AS resultado;
+						END IF;		
+
+					ELSE
+						SELECT 'ERROR: no existe un empleado con ese legajo' AS resultado;
+					END IF;	
+				ELSE
+					SELECT 'ERROR: no existe un pasajero con ese tipo y numero de DNI' AS resultado;
+				END IF;	
+			ELSE
+				SELECT 'ERROR: no existe la clase en ese vuelo' AS resultado;
+			END IF;	
+		ELSE
+			SELECT 'ERROR: no existe un numero de vuelo en esa fecha' AS resultado;
+		END IF;
+	COMMIT;
+
+END;
+!
+
+delimiter ;
