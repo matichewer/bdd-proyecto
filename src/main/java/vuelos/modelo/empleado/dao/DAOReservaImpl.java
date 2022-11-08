@@ -1,14 +1,24 @@
 package vuelos.modelo.empleado.dao;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import vuelos.modelo.empleado.beans.DetalleVueloBean;
 import vuelos.modelo.empleado.beans.EmpleadoBean;
+import vuelos.modelo.empleado.beans.EmpleadoBeanImpl;
 import vuelos.modelo.empleado.beans.InstanciaVueloBean;
+import vuelos.modelo.empleado.beans.InstanciaVueloClaseBean;
 import vuelos.modelo.empleado.beans.PasajeroBean;
+import vuelos.modelo.empleado.beans.PasajeroBeanImpl;
 import vuelos.modelo.empleado.beans.ReservaBean;
+import vuelos.modelo.empleado.beans.ReservaBeanImpl;
 import vuelos.modelo.empleado.dao.datosprueba.DAOReservaDatosPrueba;
 
 public class DAOReservaImpl implements DAOReserva {
@@ -225,8 +235,58 @@ public class DAOReservaImpl implements DAOReserva {
 		 * Importante, tenga en cuenta de setear correctamente el atributo IdaVuelta con el método setEsIdaVuelta en la ReservaBean
 		 */
 		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
-		ReservaBean reserva = DAOReservaDatosPrueba.getReserva();
-		logger.debug("Se recuperó la reserva: {}, {}", reserva.getNumero(), reserva.getEstado());
+		
+
+		
+		String sql = "SELECT * FROM reservas AS r NATURAL JOIN pasajeros AS p JOIN empleados AS e ON r.legajo=e.legajo  WHERE numero=" + codigoReserva;
+		ReservaBean reserva =null;
+		ArrayList<DetalleVueloBean> lista = new ArrayList<DetalleVueloBean>();
+		try{ 
+			
+			PreparedStatement stmt = conexion.prepareStatement(sql);
+	        ResultSet rs = stmt.executeQuery(sql);
+	        PasajeroBean pasajero= new PasajeroBeanImpl();
+	        EmpleadoBean empleado=new EmpleadoBeanImpl();
+	     ArrayList<InstanciaVueloClaseBean> vuelosClase=new  ArrayList<InstanciaVueloClaseBean>(); 
+
+	        if (rs.next()) {
+	        	reserva = new ReservaBeanImpl();
+	        	reserva.setNumero(rs.getInt("numero"));
+	        	reserva.setFecha(rs.getDate("fecha"));
+	        	reserva.setVencimiento(rs.getDate("vencimiento"));
+	        	reserva.setEstado(rs.getString("estado"));
+	        	pasajero.setApellido(rs.getString("p.apellido"));
+	        	pasajero.setDireccion(rs.getString("p.direccion"));
+	        	pasajero.setNacionalidad(rs.getString("p.nacionalidad"));
+	        	pasajero.setNombre(rs.getString("p.nombre"));
+	        	pasajero.setNroDocumento(rs.getInt("p.doc_nro"));
+	        	pasajero.setTelefono(rs.getString("p.telefono"));
+	        	pasajero.setTipoDocumento(rs.getString("p.doc_tipo"));
+	        	empleado.setApellido(rs.getString("e.apellido"));
+	        	empleado.setDireccion(rs.getString("e.direccion"));
+	        	empleado.setLegajo(rs.getInt("e.legajo"));
+	        	empleado.setNombre(rs.getString("e.nombre"));
+	        	empleado.setNroDocumento(rs.getInt("e.doc_nro"));
+	        	empleado.setPassword(rs.getString("e.password"));
+	        	empleado.setTelefono(rs.getString("e.telefono"));
+	        	empleado.setTipoDocumento(rs.getString("e.doc_tipo"));
+	        	reserva.setEsIdaVuelta(rs.getBoolean("idaVuelta"));
+	        	
+	        	logger.debug("Se recuperó la reserva: {}, {}", reserva.getNumero(), reserva.getEstado());	
+	        }   
+	        
+	        stmt.close();
+	        rs.close();
+		}
+		catch (SQLException ex)
+		{			
+			logger.error("SQLException: " + ex.getMessage());
+			logger.error("SQLState: " + ex.getSQLState());
+			logger.error("VendorError: " + ex.getErrorCode());
+			throw new Exception("Error inesperado al consultar la B.D.");
+		}		
+				
+		
 		
 		return reserva;
 		// Fin datos estáticos de prueba.
