@@ -30,6 +30,86 @@ public class DAOReservaImpl implements DAOReserva {
 							   EmpleadoBean empleado) throws Exception {
 		logger.info("Realiza la reserva de solo ida con pasajero {}", pasajero.getNroDocumento());
 		
+		/*
+			reservas(numero, fecha, vencimiento, estado, doc tipo, doc nro, legajo)
+
+
+
+			Sebastian hizo el procedimiento con 6 variables de entrada.
+			start transaction
+				revisar que exista vuelo, fecha, tipo, etc etc
+				
+				revisar q haya asientos disponibles: miramos la tabla asientos_reservados (usar FOR UPDATE)
+				de vuelos disponibles obtengo la cant de asientos disponibles creo (?)
+				si no hay asientos disponibles, chau
+				sino 
+					estado = en espera
+					insert en:
+						reservas(fecha de hoy CURDATE(), estado, dto_tipo, dto_num, legajo, vencimiento=curdate interval 15 dias )
+						reserva_vuelo_clase(LAST_INSERT_ID, vuelo de ida, fecha de ida, clase de ida )
+						asientos_reservados( vuelo de ida, fecha de ida , clase de ida, cantidad+1)
+
+					si hay asientos fisicos disponibles (brinda join instancias vuelo)
+						estado = confirmado
+						insert en:
+							reservas
+							reserva_vuelo
+							asientos_reservados
+	
+	Recordar usar: 
+		- Usar handler for SQLException
+		- getDiagnostics
+			despues acordarse de usar rollback
+			
+
+
+		Explicacion de Diego:
+			insertar en :
+				reservas, y luego hacer el last_insert_id para hacer el insert de reservas_vuelo_clase
+
+
+			en idaYVuelta:
+				- insertar 1 vez en reservas y 2 veces en reserva_vuelo_clase
+
+
+
+
+	RESERVA VUELO IDA Y VUELTA CON SEBA:
+		
+			EL procedimiento va a tener  muchos mas parametros porque necesito registrar ida y vuelta:
+				doc es 1 solo
+				legajo es 1 solo
+			
+			variables: 
+				las 3 variables del handler
+				variables de vuelos disponibles y blabla o no se
+				asientos disponibles x2
+				estado x1
+			
+			start transaction
+				revisar que exista vuelo, fecha, doc,tipo, etc etc todo básicamente
+				
+				variables para guardar cant de asientos, tanto de ida como de vuelta
+				si hay vuelos disponibles y reservados EN AMBOS (ida y vuelta)
+					estado=confirmado
+				sino 
+					estado = en espera
+
+					insert en:
+						reservas(fecha de hoy CURDATE(), estado, dto_tipo, dto_num, legajo, vencimiento=curdate interval 15 dias )
+						reserva_vuelo_clase(LAST_INSERT_ID, vuelo de ida, fecha de ida, clase de ida )
+						reserva_vuelo_clase(LAST_INSER_ID, vuelo de vuelta, fecha de vuelta, clase vuelta)
+						asientos_reservados( vuelo de ida, fecha de ida , clase de ida, cantidad+1)
+						asientos reservados ( lo mismo pero de vuelta )
+
+
+
+		*/
+
+
+
+
+
 		/**
 		 * TODO (parte 2) Realizar una reserva de ida solamente llamando al Stored Procedure (S.P.) correspondiente. 
 		 *      Si la reserva tuvo exito deberá retornar el número de reserva. Si la reserva no tuvo éxito o 
