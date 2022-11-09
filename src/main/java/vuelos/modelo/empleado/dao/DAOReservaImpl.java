@@ -204,8 +204,8 @@ public class DAOReservaImpl implements DAOReserva {
 			
 			PreparedStatement stmt = conexion.prepareStatement(sql);
 	        ResultSet rs = stmt.executeQuery(sql);
-	        PasajeroBean pasajero= new PasajeroBeanImpl();
-	        EmpleadoBean empleado=new EmpleadoBeanImpl();
+	        DAOPasajero pasajero= new DAOPasajeroImpl(this.conexion);
+	        DAOEmpleado empleado=new DAOEmpleadoImpl(this.conexion);
 	     ArrayList<InstanciaVueloClaseBean> vuelosClase=new  ArrayList<InstanciaVueloClaseBean>(); 
 
 	        if (rs.next()) {
@@ -214,21 +214,10 @@ public class DAOReservaImpl implements DAOReserva {
 	        	reserva.setFecha(rs.getDate("fecha"));
 	        	reserva.setVencimiento(rs.getDate("vencimiento"));
 	        	reserva.setEstado(rs.getString("estado"));
-	        	pasajero.setApellido(rs.getString("p.apellido"));
-	        	pasajero.setDireccion(rs.getString("p.direccion"));
-	        	pasajero.setNacionalidad(rs.getString("p.nacionalidad"));
-	        	pasajero.setNombre(rs.getString("p.nombre"));
-	        	pasajero.setNroDocumento(rs.getInt("p.doc_nro"));
-	        	pasajero.setTelefono(rs.getString("p.telefono"));
-	        	pasajero.setTipoDocumento(rs.getString("p.doc_tipo"));
-	        	empleado.setApellido(rs.getString("e.apellido"));
-	        	empleado.setDireccion(rs.getString("e.direccion"));
-	        	empleado.setLegajo(rs.getInt("e.legajo"));
-	        	empleado.setNombre(rs.getString("e.nombre"));
-	        	empleado.setNroDocumento(rs.getInt("e.doc_nro"));
-	        	empleado.setPassword(rs.getString("e.password"));
-	        	empleado.setTelefono(rs.getString("e.telefono"));
-	        	empleado.setTipoDocumento(rs.getString("e.doc_tipo"));
+	        	
+	        	reserva.setEmpleado(empleado.recuperarEmpleado(rs.getInt("legajo")));
+	        	reserva.setPasajero(pasajero.recuperarPasajero(rs.getString("doc_tipo"), codigoReserva));
+	        	
 	        	reserva.setEsIdaVuelta(rs.getBoolean("idaVuelta"));
 	        	
 	        	logger.debug("Se recuperó la reserva: {}, {}", reserva.getNumero(), reserva.getEstado());	
