@@ -348,11 +348,12 @@ GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
 ##############################################################################
 
 delimiter !
-CREATE PROCEDURE reservaSoloIda (IN num_vuelo INT, IN fecha DATE, IN clase VARCHAR(45), IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
+CREATE PROCEDURE reservaSoloIda (IN vuelo VARCHAR(10), IN fecha DATE, IN clase VARCHAR(20), IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
 BEGIN
 
+
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
-	DECLARE asientos_disponibles INT;
+#	DECLARE asientos_disponibles INT;
 	DECLARE cant_de_reservas INT;
 	DECLARE vencimiento DATE;
 
@@ -373,8 +374,8 @@ BEGIN
 	START TRANSACTION;
 
 		# Verificamos que existan los datos recibidos por parámetro
-		IF EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = num_vuelo) AND (iv.fecha = fecha)) THEN
-			IF EXISTS (SELECT * FROM brinda AS b WHERE (b.clase = clase) AND (b.vuelo = num_vuelo)) THEN
+		IF EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = vuelo) AND (iv.fecha = fecha)) THEN
+			IF EXISTS (SELECT * FROM brinda AS b WHERE (b.clase = clase) AND (b.vuelo = vuelo)) THEN
 				IF EXISTS (SELECT * FROM pasajeros AS p WHERE (p.doc_tipo = doc_tipo) AND (p.doc_nro = doc_nro)) THEN
 					IF EXISTS (SELECT * FROM empleados AS e WHERE (e.legajo = legajo)) THEN
 
@@ -383,25 +384,25 @@ BEGIN
 						FROM asientos_reservados AS a_reservados
 						WHERE ((a_reservados.clase = clase) AND
 								(a_reservados.fecha = fecha) AND
-								(a_reservados.vuelo = num_vuelo))
+								(a_reservados.vuelo = vuelo))
 						FOR UPDATE;
 						
 						# Obtenemos los asientos disponibles de la VISTA que creamos
-						SET asientos_disponibles = (SELECT asientos_disponibles 
+						SET @asientos_disponibles = (SELECT asientos_disponibles 
 														FROM vuelos_disponibles AS vuelos_disp
-														WHERE ((vuelos_disp.vuelo = num_vuelo) AND 
+														WHERE ((vuelos_disp.nro_vuelo = vuelo) AND 
 																(vuelos_disp.fecha = fecha) AND 
 																(vuelos_disp.clase = clase)));
 
-						IF (asientos_disponibles > 0) THEN			
+						IF (@asientos_disponibles > 0) THEN			
 							SET cant_de_reservas = (SELECT cantidad 
 														FROM asientos_reservados AS a_reservados
 														WHERE ((a_reservados.clase = clase) AND
 																(a_reservados.fecha = fecha) AND
-																(a_reservados.vuelo = num_vuelo)));
+																(a_reservados.vuelo = vuelo)));
 							
 							# Seteamos el estado de la reserva
-							IF (cant_de_reservas < asientos_disponibles) THEN
+							IF (cant_de_reservas < @asientos_disponibles) THEN
 								SET estado_reserva = 'Confirmada';
 							END IF;							
 
@@ -409,23 +410,23 @@ BEGIN
 							SET vencimiento = (SELECT DATE_SUB(fecha, INTERVAL 15 DAY));
 							# Insertamos en las tablas correspondientes (recordar es solo viaje de ida)
 							INSERT INTO reservas (fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) 
-									VALUES ((SELECT CURDATE()), vencimiento, estado_reserva, doc_tipo, doc_nro, legajo);
+									VALUES (CURDATE(), vencimiento, estado_reserva, doc_tipo, doc_nro, legajo);
 
-							INSERT INTO reserva_vuelo_clase (vuelo, fecha, clase)
-									VALUES ((SELECT LAST_INSERT_ID()), fecha, clase);
+							INSERT INTO reserva_vuelo_clase (numero, vuelo, fecha_vuelo, clase)
+									VALUES (LAST_INSERT_ID(), vuelo, fecha, clase);
 
 							SELECT 'La reserva se ha registrado exitosamente' AS resultado;
-							SELECT LAST_INSERT_ID() AS numero_reserva FROM reservas;
+							SELECT LAST_INSERT_ID() AS numero_reserva;
 							
 							
 							UPDATE asientos_reservados AS a_reservados
 							SET cantidad = cantidad + 1
 							WHERE ((a_reservados.clase = clase) AND
 									(a_reservados.fecha = fecha) AND
-									(a_reservados.vuelo = num_vuelo));
+									(a_reservados.vuelo = vuelo));
 
 						ELSE
-							SELECT 'ERROR: no hay disponibilidad para ese vuelo y clase' AS resultado;
+							SELECT 'ERROR: no hay disponibilidad para ese vuelo y clase' AS resultado, @asientos_disponibles;
 						END IF;		
 
 					ELSE
@@ -446,3 +447,8 @@ END;
 !
 
 delimiter ;
+
+
+
+GRANT EXECUTE ON PROCEDURE vuelos.reservaSoloIda TO 'empleado'@'%';
+#GRANT EXECUTE ON PROCEDURE vuelos.reservar################## TO 'empleado'@'%';
