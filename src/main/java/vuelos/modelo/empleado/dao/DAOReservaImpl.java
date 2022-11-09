@@ -204,8 +204,6 @@ public class DAOReservaImpl implements DAOReserva {
 			
 			PreparedStatement stmt = conexion.prepareStatement(sql);
 	        ResultSet rs = stmt.executeQuery(sql);
-	        DAOPasajero pasajero= new DAOPasajeroImpl(this.conexion);
-	        DAOEmpleado empleado=new DAOEmpleadoImpl(this.conexion);
 	     ArrayList<InstanciaVueloClaseBean> vuelosClase=new  ArrayList<InstanciaVueloClaseBean>(); 
 
 	        if (rs.next()) {
@@ -215,8 +213,12 @@ public class DAOReservaImpl implements DAOReserva {
 	        	reserva.setVencimiento(rs.getDate("vencimiento"));
 	        	reserva.setEstado(rs.getString("estado"));
 	        	
+
+		        DAOPasajero pasajero = new DAOPasajeroImpl(this.conexion);
+		        DAOEmpleado empleado =new DAOEmpleadoImpl(this.conexion);
 	        	reserva.setEmpleado(empleado.recuperarEmpleado(rs.getInt("legajo")));
-	        	reserva.setPasajero(pasajero.recuperarPasajero(rs.getString("doc_tipo"), codigoReserva));
+	        	reserva.setPasajero(pasajero.recuperarPasajero(rs.getString("doc_tipo"), rs.getInt("doc_nro")));
+	        
 	        	
 	        	reserva.setEsIdaVuelta(rs.getBoolean("idaVuelta"));
 	        	
