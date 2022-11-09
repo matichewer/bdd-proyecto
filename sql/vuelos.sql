@@ -150,9 +150,9 @@ CREATE TABLE empleados(
 	password VARCHAR(32) NOT NULL,
 	doc_tipo VARCHAR(45) NOT NULL,
 	doc_nro INT UNSIGNED NOT NULL,
-	apellido VARCHAR(20) NOT NULL, Y
+	apellido VARCHAR(20) NOT NULL,
 	nombre VARCHAR(20) NOT NULL, 
-	direccion VARCHAR(40) NOT NULL, Y
+	direccion VARCHAR(40) NOT NULL,
 	telefono VARCHAR(15) NOT NULL,
 
 	CONSTRAINT pk_empleados
@@ -339,9 +339,7 @@ GRANT INSERT,DELETE,UPDATE ON vuelos.reserva_vuelo_clase TO  'empleado'@'%';
 
 # Creamos el usuario cliente
 CREATE USER 'cliente'@'%' IDENTIFIED BY 'cliente';
-GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%'
-
-
+GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
 
 
 
@@ -350,9 +348,13 @@ GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%'
 ##############################################################################
 
 delimiter !
-CREATE PROCEDURE reservaSoloIda
-	(IN num_vuelo INT, IN fecha DATE, IN clase VARCHAR(45), IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
-BEGIN	
+CREATE PROCEDURE reservaSoloIda (IN num_vuelo INT, IN fecha DATE, IN clase VARCHAR(45), IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
+BEGIN
+
+	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
+	DECLARE asientos_disponibles INT;
+	DECLARE cant_de_reservas INT;
+	DECLARE vencimiento DATE;
 
 	# Manejo de excepciones
 	DECLARE codigo_SQL CHAR(5) DEFAULT '00000';
@@ -366,16 +368,12 @@ BEGIN
 				mensaje_error = MESSAGE_TEXT;
 			SELECT 'SQLEXCEPTION: transaccion abortada' AS resultado, codigo_MYSQL, codigo_SQL, mensaje_error;
 			ROLLBACK;
-		END;
-	
+		END;	
+
 	START TRANSACTION;
 
-		DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
-		DECLARE asientos_disponibles, cant_de_reservas INT;
-		DECLARE vencimiento DATE;
-		
 		# Verificamos que existan los datos recibidos por parámetro
-		IF EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = num_vuelo) AND (iv.fecha = fecha) THEN
+		IF EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = num_vuelo) AND (iv.fecha = fecha)) THEN
 			IF EXISTS (SELECT * FROM brinda AS b WHERE (b.clase = clase) AND (b.vuelo = num_vuelo)) THEN
 				IF EXISTS (SELECT * FROM pasajeros AS p WHERE (p.doc_tipo = doc_tipo) AND (p.doc_nro = doc_nro)) THEN
 					IF EXISTS (SELECT * FROM empleados AS e WHERE (e.legajo = legajo)) THEN
@@ -400,7 +398,7 @@ BEGIN
 														FROM asientos_reservados AS a_reservados
 														WHERE ((a_reservados.clase = clase) AND
 																(a_reservados.fecha = fecha) AND
-																(a_reservados.vuelo = num_vuelo));
+																(a_reservados.vuelo = num_vuelo)));
 							
 							# Seteamos el estado de la reserva
 							IF (cant_de_reservas < asientos_disponibles) THEN
@@ -411,12 +409,13 @@ BEGIN
 							SET vencimiento = (SELECT DATE_SUB(fecha, INTERVAL 15 DAY));
 							# Insertamos en las tablas correspondientes (recordar es solo viaje de ida)
 							INSERT INTO reservas (fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) 
-									VALUES (SELECT CURDATE(), vencimiento, estado_reserva, doc_tipo, doc_nro, legajo);
+									VALUES ((SELECT CURDATE()), vencimiento, estado_reserva, doc_tipo, doc_nro, legajo);
 
 							INSERT INTO reserva_vuelo_clase (vuelo, fecha, clase)
-									VALUES (SELECT LAST_INSERT_ID(), fecha, clase);
+									VALUES ((SELECT LAST_INSERT_ID()), fecha, clase);
 
-							SELECT 'Se registro la reserva exitosamente: ' AS resultado, estado_reserva;
+							SELECT 'La reserva se ha registrado exitosamente' AS resultado;
+							SELECT LAST_INSERT_ID() AS numero_reserva FROM reservas;
 							
 							
 							UPDATE asientos_reservados AS a_reservados
