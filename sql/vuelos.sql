@@ -592,11 +592,53 @@ BEGIN
 			SELECT 'ERROR: no existe un numero de vuelo en esa fecha' AS resultado;
 		END IF;
 	COMMIT;
-END;!
+END;
+!
 
-DELIMITER ; # FIN STORED PROCEDURES
 
 
+##############################################################################
+#								TRIGGER								 		 #
+##############################################################################
+
+CREATE TRIGGER inicializar_asientos_reservados
+AFTER INSERT ON instancias_vuelo
+FOR EACH ROW
+BEGIN
+	# Declaro variables
+	DECLARE fin BOOLEAN DEFAULT FALSE; # frena el loop
+	DECLARE nombre_clase VARCHAR(20); # en cada iteracion almacena un nombre de clase
+
+	# Declaro un cursor para la consulta que devuelve el nombre de las clases
+	DECLARE C CURSOR FOR SELECT nombre FROM clases;
+
+	# Defino operacion a realizar cuando el FETCH no encuentre mas filas: SET fin = TRUE
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET fin = TRUE;
+
+	# Abro el cursor (ejecuta la consulta asociada)
+	OPEN C; 
+
+	# Recupero la primera fila en la variable nombre_clase
+	FETCH C INTO nombre_clase;
+
+	WHILE NOT fin DO
+		# Inserto:  
+		#			- el nuevo vuelo que hay en instancias_vuelo
+		#			- la nueva fecha que hay en instancias_vuelo
+		#			- el nombre de la clase en la que estoy iterando
+		#			- la cantidad de asientos reservados en 0
+		INSERT INTO asientos_reservados (vuelo, fecha, clase, cantidad)
+				VALUES (NEW.vuelo, NEW.fecha, nombre_clase, 0);
+
+		# Recupero la próxima fila en la variable nombre_clase
+		FETCH C INTO nombre_clase;
+	END WHILE;
+END;
+!
+
+
+
+DELIMITER ; # FIN STORED PROCEDURES Y TRIGGERS
 
 GRANT EXECUTE ON PROCEDURE vuelos.reservaSoloIda TO 'empleado'@'%';
 GRANT EXECUTE ON PROCEDURE vuelos.reservaIdaVuelta TO 'empleado'@'%';
