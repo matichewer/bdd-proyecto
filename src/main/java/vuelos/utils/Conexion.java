@@ -48,7 +48,7 @@ public class Conexion {
 					  		prop.getProperty("servidor", "localhost") + ":" +
 					  		prop.getProperty("puerto"));
 			
-			Conexion.setUrlstring(Conexion.getUrl() + "/" + prop.getProperty("base_de_datos") + prop.getProperty("parametro_aux1"));
+			Conexion.setUrlstring(Conexion.getUrl() + "/" + prop.getProperty("base_de_datos") + prop.getProperty("parametro_aux1") + prop.getProperty("parametro_aux2"));
 
 			logger.debug("Parámetros de conexión: {}", Conexion.getUrl() + "/" + prop.getProperty("base_de_datos") + prop.getProperty("parametro_aux1"));
 		}
