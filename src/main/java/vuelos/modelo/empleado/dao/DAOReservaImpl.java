@@ -1,5 +1,6 @@
 package vuelos.modelo.empleado.dao;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,6 +21,7 @@ import vuelos.modelo.empleado.beans.PasajeroBeanImpl;
 import vuelos.modelo.empleado.beans.ReservaBean;
 import vuelos.modelo.empleado.beans.ReservaBeanImpl;
 import vuelos.modelo.empleado.dao.datosprueba.DAOReservaDatosPrueba;
+import vuelos.utils.Fechas;
 
 public class DAOReservaImpl implements DAOReserva {
 
@@ -39,86 +41,6 @@ public class DAOReservaImpl implements DAOReserva {
 							   DetalleVueloBean detalleVuelo,
 							   EmpleadoBean empleado) throws Exception {
 		logger.info("Realiza la reserva de solo ida con pasajero {}", pasajero.getNroDocumento());
-		
-		/*
-			reservas(numero, fecha, vencimiento, estado, doc tipo, doc nro, legajo)
-
-
-
-			Sebastian hizo el procedimiento con 6 variables de entrada.
-			start transaction
-				revisar que exista vuelo, fecha, tipo, etc etc
-				
-				revisar q haya asientos disponibles: miramos la tabla asientos_reservados (usar FOR UPDATE)
-				de vuelos disponibles obtengo la cant de asientos disponibles creo (?)
-				si no hay asientos disponibles, chau
-				sino 
-					estado = en espera
-					insert en:
-						reservas(fecha de hoy CURDATE(), estado, dto_tipo, dto_num, legajo, vencimiento=curdate interval 15 dias )
-						reserva_vuelo_clase(LAST_INSERT_ID, vuelo de ida, fecha de ida, clase de ida )
-						asientos_reservados( vuelo de ida, fecha de ida , clase de ida, cantidad+1)
-
-					si hay asientos fisicos disponibles (brinda join instancias vuelo)
-						estado = confirmado
-						insert en:
-							reservas
-							reserva_vuelo
-							asientos_reservados
-	
-	Recordar usar: 
-		- Usar handler for SQLException
-		- getDiagnostics
-			despues acordarse de usar rollback
-			
-
-
-		Explicacion de Diego:
-			insertar en :
-				reservas, y luego hacer el last_insert_id para hacer el insert de reservas_vuelo_clase
-
-
-			en idaYVuelta:
-				- insertar 1 vez en reservas y 2 veces en reserva_vuelo_clase
-
-
-
-
-	RESERVA VUELO IDA Y VUELTA CON SEBA:
-		
-			EL procedimiento va a tener  muchos mas parametros porque necesito registrar ida y vuelta:
-				doc es 1 solo
-				legajo es 1 solo
-			
-			variables: 
-				las 3 variables del handler
-				variables de vuelos disponibles y blabla o no se
-				asientos disponibles x2
-				estado x1
-			
-			start transaction
-				revisar que exista vuelo, fecha, doc,tipo, etc etc todo básicamente
-				
-				variables para guardar cant de asientos, tanto de ida como de vuelta
-				si hay vuelos disponibles y reservados EN AMBOS (ida y vuelta)
-					estado=confirmado
-				sino 
-					estado = en espera
-
-					insert en:
-						reservas(fecha de hoy CURDATE(), estado, dto_tipo, dto_num, legajo, vencimiento=curdate interval 15 dias )
-						reserva_vuelo_clase(LAST_INSERT_ID, vuelo de ida, fecha de ida, clase de ida )
-						reserva_vuelo_clase(LAST_INSER_ID, vuelo de vuelta, fecha de vuelta, clase vuelta)
-						asientos_reservados( vuelo de ida, fecha de ida , clase de ida, cantidad+1)
-						asientos reservados ( lo mismo pero de vuelta )
-
-
-
-		*/
-
-
-
-
 
 		/**
 		 * TODO (parte 2) Realizar una reserva de ida solamente llamando al Stored Procedure (S.P.) correspondiente. 
@@ -132,16 +54,30 @@ public class DAOReservaImpl implements DAOReserva {
 		 * 
 		 * @throws Exception. Deberá propagar la excepción si ocurre alguna. Puede capturarla para loguear los errores
 		 *		   pero luego deberá propagarla para que el controlador se encargue de manejarla.
-		 *
-		 * try (CallableStatement cstmt = conexion.prepareCall("CALL PROCEDURE reservaSoloIda(?, ?, ?, ?, ?, ?, ?)"))
-		 * {
-		 *  ...
-		 * }
-		 * catch (SQLException ex){
-		 * 			logger.debug("Error al consultar la BD. SQLException: {}. SQLState: {}. VendorError: {}.", ex.getMessage(), ex.getSQLState(), ex.getErrorCode());
-		 *  		throw ex;
-		 * } 
 		 */
+		
+		 try {
+			  CallableStatement cstmt = conexion.prepareCall("CALL PROCEDURE reservaSoloIda(?, ?, ?, ?, ?, ?, ?)");
+			  cstmt.setInt(1, Integer.parseInt(vuelo.getNroVuelo()));
+			  cstmt.setDate(2, Fechas.convertirDateADateSQL(vuelo.getFechaVuelo()));
+			  cstmt.setString(3, detalleVuelo.getClase());
+			  cstmt.setString(4, pasajero.getTipoDocumento());
+			  cstmt.setInt(5, pasajero.getNroDocumento());
+			  cstmt.setInt(6, empleado.getLegajo());	
+			  
+			  ResultSet rs = cstmt.executeQuery();
+			  if(rs.next()) {
+				  String resultado = rs.getString("resultado");		
+				  logger.debug(resultado);
+				  
+			  }
+			  
+		  }
+		  catch (SQLException ex){
+		  		logger.debug("Error al consultar la BD. SQLException: {}. SQLState: {}. VendorError: {}.", ex.getMessage(), ex.getSQLState(), ex.getErrorCode());
+		   		throw ex;
+		  } 
+		 
 		
 		/*
 		 * Datos estaticos de prueba: Quitar y reemplazar por código que invoca al S.P.
