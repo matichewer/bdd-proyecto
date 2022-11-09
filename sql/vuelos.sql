@@ -351,9 +351,7 @@ delimiter !
 CREATE PROCEDURE reservaSoloIda (IN vuelo VARCHAR(10), IN fecha DATE, IN clase VARCHAR(20), IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
 BEGIN
 
-
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
-#	DECLARE asientos_disponibles INT;
 	DECLARE cant_de_reservas INT;
 	DECLARE vencimiento DATE;
 
@@ -413,17 +411,17 @@ BEGIN
 									VALUES (CURDATE(), vencimiento, estado_reserva, doc_tipo, doc_nro, legajo);
 
 							INSERT INTO reserva_vuelo_clase (numero, vuelo, fecha_vuelo, clase)
-									VALUES (LAST_INSERT_ID(), vuelo, fecha, clase);
-
-							SELECT 'La reserva se ha registrado exitosamente' AS resultado;
-							SELECT LAST_INSERT_ID() AS numero_reserva;
-							
+									VALUES (LAST_INSERT_ID(), vuelo, fecha, clase);							
 							
 							UPDATE asientos_reservados AS a_reservados
 							SET cantidad = cantidad + 1
 							WHERE ((a_reservados.clase = clase) AND
 									(a_reservados.fecha = fecha) AND
 									(a_reservados.vuelo = vuelo));
+
+
+							SELECT 'La reserva se ha registrado exitosamente' AS resultado;
+							SELECT LAST_INSERT_ID() AS numero_reserva;
 
 						ELSE
 							SELECT 'ERROR: no hay disponibilidad para ese vuelo y clase' AS resultado, @asientos_disponibles;
@@ -446,9 +444,159 @@ BEGIN
 END;
 !
 
-delimiter ;
+
+
+CREATE PROCEDURE reservaIdaVuelta (IN vuelo_ida VARCHAR(10), IN fecha_ida DATE, IN clase_ida VARCHAR(20), 
+									IN vuelo_vuelta VARCHAR(10), IN fecha_vuelta DATE, IN clase_vuelta VARCHAR(20),
+									IN doc_tipo VARCHAR(45), IN doc_nro INT, IN nro_legajo INT)
+BEGIN
+
+	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
+	DECLARE cant_de_reservas_ida INT;
+	DECLARE cant_de_reservas_vuelta INT;
+	DECLARE vencimiento_ida DATE;
+	DECLARE vencimiento_vuelta DATE;
+
+	# Manejo de excepciones
+	DECLARE codigo_SQL CHAR(5) DEFAULT '00000';
+	DECLARE codigo_MYSQL INT DEFAULT 0;
+	DECLARE mensaje_error TEXT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION 
+		BEGIN
+			GET DIAGNOSTICS CONDITION 1
+				codigo_MYSQL = MYSQL_ERRNO,
+				codigo_SQL = RETURNED_SQLSTATE,
+				mensaje_error = MESSAGE_TEXT;
+			SELECT 'SQLEXCEPTION: transaccion abortada' AS resultado, codigo_MYSQL, codigo_SQL, mensaje_error;
+			ROLLBACK;
+		END;	
+
+	START TRANSACTION;
+
+		# Verificamos que existan los datos recibidos por parámetro
+		IF EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = vuelo_ida) AND (iv.fecha = fecha_ida)) AND
+		   EXISTS (SELECT * FROM instancias_vuelo AS iv WHERE (iv.vuelo = vuelo_vuelta) AND (iv.fecha = fecha_vuelta)) THEN
+
+			IF EXISTS (SELECT * FROM brinda AS b WHERE (b.clase = clase_ida) AND (b.vuelo = vuelo_ida)) AND
+			   EXISTS (SELECT * FROM brinda AS b WHERE (b.clase = clase_vuelta) AND (b.vuelo = vuelo_vuelta)) THEN
+
+				IF EXISTS (SELECT * FROM pasajeros AS p WHERE (p.doc_tipo = doc_tipo) AND (p.doc_nro = doc_nro)) THEN
+
+					IF EXISTS (SELECT * FROM empleados AS e WHERE (e.legajo = legajo)) THEN
+
+
+						# Bloqueamos en modo exclusivo los asientos reservados de IDA
+						SELECT *		
+						FROM asientos_reservados AS a_reservados_ida
+						WHERE ((a_reservados.clase = clase_ida) AND
+								(a_reservados.fecha = fecha_ida) AND
+								(a_reservados.vuelo = vuelo_ida))
+						FOR UPDATE;
+
+						# Bloqueamos en modo exclusivo los asientos reservados de VUELTA
+						SELECT *		
+						FROM asientos_reservados AS a_reservados_vuelta
+						WHERE ((a_reservados.clase = clase_vuelta) AND
+								(a_reservados.fecha = fecha_vuelta) AND
+								(a_reservados.vuelo = vuelo_vuelta))
+						FOR UPDATE;
+
+						
+
+						# Obtenemos los asientos disponibles de IDA de la VISTA que creamos
+						SET @asientos_disponibles_ida = (SELECT asientos_disponibles 
+														FROM vuelos_disponibles AS vuelos_disp
+														WHERE ((vuelos_disp.nro_vuelo = vuelo_ida) AND 
+																(vuelos_disp.fecha = fecha_ida) AND 
+																(vuelos_disp.clase = clase_ida)));
+
+						# Obtenemos los asientos disponibles de VUELTA de la VISTA que creamos
+						SET @asientos_disponibles_vuelta = (SELECT asientos_disponibles 
+															FROM vuelos_disponibles AS vuelos_disp
+															WHERE ((vuelos_disp.nro_vuelo = vuelo_vuelta) AND 
+																	(vuelos_disp.fecha = fecha_vuelta) AND 
+																	(vuelos_disp.clase = clase_vuelta)));
+
+
+
+						IF (@asientos_disponibles_ida > 0) THEN	
+							IF (@asientos_disponibles_vuelta > 0) THEN		
+
+								SET cant_de_reservas_ida = (SELECT cantidad 
+															FROM asientos_reservados AS a_reservados
+															WHERE ((a_reservados.clase = clase_ida) AND
+																	(a_reservados.fecha = fecha_ida) AND
+																	(a_reservados.vuelo = vuelo_ida)));
+
+								SET cant_de_reservas_vuelta = (SELECT cantidad 
+																FROM asientos_reservados AS a_reservados
+																WHERE ((a_reservados.clase = clase_vuelta) AND
+																		(a_reservados.fecha = fecha_vuelta) AND
+																		(a_reservados.vuelo = vuelo_vuelta)));
+
+							
+								# Seteamos el estado de la reserva
+								IF ((cant_de_reservas_ida < @asientos_disponibles_ida) AND (cant_de_reservas_vuelta < @asientos_disponibles_vuelta)) THEN
+									SET estado_reserva = 'Confirmada';
+								END IF;		
+
+
+								SET vencimiento_ida = (SELECT DATE_SUB(fecha_ida, INTERVAL 15 DAY));
+
+
+								# Insertamos en las tablas correspondientes (recordar es viaje de ida y de vuelta)
+								INSERT INTO reservas (fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) 
+										VALUES (CURDATE(), vencimiento_ida, estado_reserva, doc_tipo, doc_nro, legajo);
+
+								INSERT INTO reserva_vuelo_clase (numero, vuelo, fecha_vuelo, clase)
+										VALUES (LAST_INSERT_ID(), vuelo_ida, fecha_ida, clase_ida);
+
+								INSERT INTO reserva_vuelo_clase (numero, vuelo, fecha_vuelo, clase)
+										VALUES (LAST_INSERT_ID(), vuelo_vuelta, fecha_vuelta, clase_vuelta);
+
+
+								# Actualizamos los asientos reservados de ida y de vuelta
+								UPDATE asientos_reservados AS a_reservados_ida
+								SET cantidad = cantidad + 1
+								WHERE ((a_reservados_ida.clase = clase_ida) AND
+										(a_reservados_ida.fecha = fecha_ida) AND
+										(a_reservados_ida.vuelo = vuelo_ida));
+
+								UPDATE asientos_reservados AS a_reservados_vuelta
+								SET cantidad = cantidad + 1
+								WHERE ((a_reservados_vuelta.clase = clase_vuelta) AND
+										(a_reservados_vuelta.fecha = fecha_vuelta) AND
+										(a_reservados_vuelta.vuelo = vuelo_vuelta));
+
+
+								SELECT 'La reserva se ha registrado exitosamente' AS resultado;
+								SELECT LAST_INSERT_ID() AS numero_reserva;
+
+
+							ELSE
+								SELECT 'ERROR: no hay disponibilidad para ese vuelo de vuelta y clase' AS resultado;
+							END IF;
+						ELSE
+							SELECT 'ERROR: no hay disponibilidad para ese vuelo de ida y clase' AS resultado;
+						END IF;	
+					ELSE
+						SELECT 'ERROR: no existe un empleado con ese legajo' AS resultado;
+					END IF;	
+				ELSE
+					SELECT 'ERROR: no existe un pasajero con ese tipo y numero de DNI' AS resultado;
+				END IF;	
+			ELSE
+				SELECT 'ERROR: no existe la clase en ese vuelo' AS resultado;
+			END IF;	
+		ELSE
+			SELECT 'ERROR: no existe un numero de vuelo en esa fecha' AS resultado;
+		END IF;
+	COMMIT;
+END;!
+
+DELIMITER ; # FIN STORED PROCEDURES
 
 
 
 GRANT EXECUTE ON PROCEDURE vuelos.reservaSoloIda TO 'empleado'@'%';
-#GRANT EXECUTE ON PROCEDURE vuelos.reservar################## TO 'empleado'@'%';
+GRANT EXECUTE ON PROCEDURE vuelos.reservaIdaVuelta TO 'empleado'@'%';
