@@ -57,7 +57,7 @@ public class DAOReservaImpl implements DAOReserva {
 		 */
 		
 		 try {
-			  CallableStatement cstmt = conexion.prepareCall("CALL PROCEDURE reservaSoloIda(?, ?, ?, ?, ?, ?, ?)");
+			  CallableStatement cstmt = conexion.prepareCall("CALL PROCEDURE reservaSoloIda(?, ?, ?, ?, ?, ?)");
 			  cstmt.setInt(1, Integer.parseInt(vuelo.getNroVuelo()));
 			  cstmt.setDate(2, Fechas.convertirDateADateSQL(vuelo.getFechaVuelo()));
 			  cstmt.setString(3, detalleVuelo.getClase());
