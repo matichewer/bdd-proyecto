@@ -48,7 +48,7 @@ public class DAOPasajeroImpl implements DAOPasajero {
 			logger.debug("tipoDoc vacio/nulo");
 		} else {			
 			try { 
-				String sql = "SELECT * FROM empleados WHERE tipoDoc=? AND nroDoc=?";
+				String sql = "SELECT * FROM pasajeros WHERE doc_tipo=? AND doc_nro=?";
 				PreparedStatement stmt = conexion.prepareStatement(sql);				
 				stmt.setString(1, tipoDoc);
 				stmt.setInt(2, nroDoc);			
