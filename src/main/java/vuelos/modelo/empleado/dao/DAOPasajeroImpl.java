@@ -38,10 +38,6 @@ public class DAOPasajeroImpl implements DAOPasajero {
 		 *      establecida con el servidor de B.D. (inicializada en el constructor DAOPasajeroImpl(...)). 
 		 */		
 
-		
-		/*
-		 * Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.  
-		 */	
 		PasajeroBean pasajero = null;	
 
 		if (tipoDoc.isEmpty() || tipoDoc == null) {
@@ -62,12 +58,13 @@ public class DAOPasajeroImpl implements DAOPasajero {
 					pasajero.setNombre(rs.getString("nombre"));
 					pasajero.setDireccion(rs.getString("direccion"));
 					pasajero.setTelefono(rs.getString("telefono"));
-					pasajero.setNacionalidad(rs.getString("nacionalidad"));
-					
+					pasajero.setNacionalidad(rs.getString("nacionalidad"));					
 					logger.debug("Pasajero recuperado: tipoDoc = " + tipoDoc + " y nroDoc = " + nroDoc);
+					
 				} else {
 					logger.debug("Pasajero no encontrado: tipoDoc = " + tipoDoc + " y nroDoc = " + nroDoc);
-				}				
+				}	
+				
 				stmt.close();
 				rs.close();
 				

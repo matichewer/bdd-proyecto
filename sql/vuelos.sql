@@ -1,5 +1,5 @@
 ##############################################################################
-#						CREACION DE LA BASE DE DATOS
+#						CREACION DE LA BASE DE DATOS						 #
 ##############################################################################
 
 CREATE DATABASE vuelos;
@@ -10,7 +10,7 @@ USE vuelos;
 
 
 ##############################################################################
-#								CREACION DE TABLAS
+#							CREACION DE TABLAS								 #
 ##############################################################################
 
 CREATE TABLE ubicaciones(
@@ -258,7 +258,7 @@ CREATE TABLE asientos_reservados(
 
 
 ##############################################################################
-#							CREACION DE VISTAS
+#							CREACION DE VISTAS								 #
 ##############################################################################
 
 	CREATE VIEW vuelos_disponibles AS
@@ -312,36 +312,6 @@ CREATE TABLE asientos_reservados(
 
 
 
-##############################################################################
-#							CREACION DE USUARIOS
-##############################################################################
-
-# Creamos el usuario admin 
-CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
-
-# Otorgamos privilegios
-# El usuario 'admin' tiene acceso total a todas las tablas de vuelos
-# y puede crear nuevos usuarios y otorgar privilegios.
-GRANT ALL PRIVILEGES ON vuelos.* TO 'admin'@'localhost' WITH GRANT OPTION;
-
-
-# Creamos el usuario empleado
-CREATE USER 'empleado'@'%' IDENTIFIED BY 'empleado';
-
-# El usuario empleado tiene acceso de lectura sobre todas las tablas
-GRANT SELECT ON vuelos.* TO 'empleado'@'%';
-
-# El usuario empleado tiene privilegios sobres ciertas tablas
-GRANT INSERT,DELETE,UPDATE ON vuelos.reservas TO 'empleado'@'%';
-GRANT INSERT,DELETE,UPDATE ON vuelos.pasajeros TO 'empleado'@'%';
-GRANT INSERT,DELETE,UPDATE ON vuelos.reserva_vuelo_clase TO  'empleado'@'%';
- 
-
-# Creamos el usuario cliente
-CREATE USER 'cliente'@'%' IDENTIFIED BY 'cliente';
-GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
-
-
 
 ##############################################################################
 #							STORED PROCEDURES								 #
@@ -378,7 +348,7 @@ BEGIN
 				IF EXISTS (SELECT * FROM pasajeros AS p WHERE (p.doc_tipo = doc_tipo) AND (p.doc_nro = doc_nro)) THEN
 					IF EXISTS (SELECT * FROM empleados AS e WHERE (e.legajo = legajo)) THEN
 
-						# Bloqueamos en modo exclusivo la fila en cuestion
+						# Bloqueamos en modo exclusivo la fila a modificar
 						SELECT cantidad INTO cant_de_reservas
 						FROM asientos_reservados AS a_reservados
 						WHERE ((a_reservados.clase = clase) AND
@@ -435,10 +405,9 @@ BEGIN
 		ELSE
 			SELECT 'ERROR: no existe un numero de vuelo en esa fecha' AS resultado;
 		END IF;
-	COMMIT;
 
-END;
-!
+	COMMIT;
+END;!
 
 
 
@@ -450,8 +419,9 @@ BEGIN
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
 	DECLARE cant_de_reservas_ida INT;
 	DECLARE cant_de_reservas_vuelta INT;
+	DECLARE asientos_disp_ida INT;
+	DECLARE asientos_disp_vuelta INT;
 	DECLARE vencimiento_ida DATE;
-	DECLARE vencimiento_vuelta DATE;
 
 	# Manejo de excepciones
 	DECLARE codigo_SQL CHAR(5) DEFAULT '00000';
@@ -482,64 +452,48 @@ BEGIN
 
 
 						# Bloqueamos en modo exclusivo los asientos reservados de IDA
-						SELECT *		
-						FROM asientos_reservados AS a_reservados_ida
+						SELECT cantidad INTO cant_de_reservas_ida
+						FROM asientos_reservados AS a_reservados
 						WHERE ((a_reservados.clase = clase_ida) AND
 								(a_reservados.fecha = fecha_ida) AND
 								(a_reservados.vuelo = vuelo_ida))
 						FOR UPDATE;
 
 						# Bloqueamos en modo exclusivo los asientos reservados de VUELTA
-						SELECT *		
-						FROM asientos_reservados AS a_reservados_vuelta
+						SELECT cantidad INTO cant_de_reservas_vuelta
+						FROM asientos_reservados AS a_reservados
 						WHERE ((a_reservados.clase = clase_vuelta) AND
 								(a_reservados.fecha = fecha_vuelta) AND
 								(a_reservados.vuelo = vuelo_vuelta))
 						FOR UPDATE;
-
 						
 
-						# Obtenemos los asientos disponibles de IDA de la VISTA que creamos
-						SET @asientos_disponibles_ida = (SELECT asientos_disponibles 
-														FROM vuelos_disponibles AS vuelos_disp
-														WHERE ((vuelos_disp.nro_vuelo = vuelo_ida) AND 
-																(vuelos_disp.fecha = fecha_ida) AND 
-																(vuelos_disp.clase = clase_ida)));
+						# Obtenemos los asientos disponibles de IDA de la VISTA
+						SELECT asientos_disponibles INTO asientos_disp_ida
+						FROM vuelos_disponibles AS vuelos_disp
+						WHERE ((vuelos_disp.nro_vuelo = vuelo_ida) AND 
+								(vuelos_disp.fecha = fecha_ida) AND 
+								(vuelos_disp.clase = clase_ida));
 
-						# Obtenemos los asientos disponibles de VUELTA de la VISTA que creamos
-						SET @asientos_disponibles_vuelta = (SELECT asientos_disponibles 
-															FROM vuelos_disponibles AS vuelos_disp
-															WHERE ((vuelos_disp.nro_vuelo = vuelo_vuelta) AND 
-																	(vuelos_disp.fecha = fecha_vuelta) AND 
-																	(vuelos_disp.clase = clase_vuelta)));
+						# Obtenemos los asientos disponibles de VUELTA de la VISTA
+						SELECT asientos_disponibles INTO asientos_disp_vuelta
+						FROM vuelos_disponibles AS vuelos_disp
+						WHERE ((vuelos_disp.nro_vuelo = vuelo_vuelta) AND 
+								(vuelos_disp.fecha = fecha_vuelta) AND 
+								(vuelos_disp.clase = clase_vuelta));
 
 
 
-						IF (@asientos_disponibles_ida > 0) THEN	
-							IF (@asientos_disponibles_vuelta > 0) THEN		
-
-								SET cant_de_reservas_ida = (SELECT cantidad 
-															FROM asientos_reservados AS a_reservados
-															WHERE ((a_reservados.clase = clase_ida) AND
-																	(a_reservados.fecha = fecha_ida) AND
-																	(a_reservados.vuelo = vuelo_ida)));
-
-								SET cant_de_reservas_vuelta = (SELECT cantidad 
-																FROM asientos_reservados AS a_reservados
-																WHERE ((a_reservados.clase = clase_vuelta) AND
-																		(a_reservados.fecha = fecha_vuelta) AND
-																		(a_reservados.vuelo = vuelo_vuelta)));
-
+						IF (asientos_disp_ida > 0) THEN	
+							IF (asientos_disp_vuelta > 0) THEN	
 							
 								# Seteamos el estado de la reserva
-								IF ((cant_de_reservas_ida < @asientos_disponibles_ida) AND (cant_de_reservas_vuelta < @asientos_disponibles_vuelta)) THEN
+								IF ((cant_de_reservas_ida < asientos_disp_ida) AND (cant_de_reservas_vuelta < asientos_disp_vuelta)) THEN
 									SET estado_reserva = 'Confirmada';
 								END IF;		
 
 
 								SET vencimiento_ida = (SELECT DATE_SUB(fecha_ida, INTERVAL 15 DAY));
-
-
 								# Insertamos en las tablas correspondientes (recordar es viaje de ida y de vuelta)
 								INSERT INTO reservas (fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) 
 										VALUES (CURDATE(), vencimiento_ida, estado_reserva, doc_tipo, doc_nro, legajo);
@@ -552,21 +506,21 @@ BEGIN
 
 
 								# Actualizamos los asientos reservados de ida y de vuelta
-								UPDATE asientos_reservados AS a_reservados_ida
+								UPDATE asientos_reservados AS a_reservados
 								SET cantidad = cantidad + 1
-								WHERE ((a_reservados_ida.clase = clase_ida) AND
-										(a_reservados_ida.fecha = fecha_ida) AND
-										(a_reservados_ida.vuelo = vuelo_ida));
+								WHERE ((a_reservados.clase = clase_ida) AND
+										(a_reservados.fecha = fecha_ida) AND
+										(a_reservados.vuelo = vuelo_ida));
 
-								UPDATE asientos_reservados AS a_reservados_vuelta
+								UPDATE asientos_reservados AS a_reservados
 								SET cantidad = cantidad + 1
-								WHERE ((a_reservados_vuelta.clase = clase_vuelta) AND
-										(a_reservados_vuelta.fecha = fecha_vuelta) AND
-										(a_reservados_vuelta.vuelo = vuelo_vuelta));
+								WHERE ((a_reservados.clase = clase_vuelta) AND
+										(a_reservados.fecha = fecha_vuelta) AND
+										(a_reservados.vuelo = vuelo_vuelta));
 
 
-								SELECT 'La reserva se ha registrado exitosamente' AS resultado;
-								SELECT LAST_INSERT_ID() AS numero_reserva;
+								SELECT 'Reserva exitosa' AS resultado, 
+										LAST_INSERT_ID() AS numero_reserva;
 
 
 							ELSE
@@ -587,14 +541,14 @@ BEGIN
 		ELSE
 			SELECT 'ERROR: no existe un numero de vuelo en esa fecha' AS resultado;
 		END IF;
+
 	COMMIT;
-END;
-!
+END;!
 
 
 
 ##############################################################################
-#								TRIGGER								 		 #
+#									TRIGGER									 #
 ##############################################################################
 
 CREATE TRIGGER inicializar_asientos_reservados
@@ -629,12 +583,43 @@ BEGIN
 		# Recupero la próxima fila en la variable nombre_clase
 		FETCH C INTO nombre_clase;
 	END WHILE;
-END;
-!
 
-
+END;!
 
 DELIMITER ; # FIN STORED PROCEDURES Y TRIGGERS
 
+
+
+
+##############################################################################
+#							USUARIOS Y PERMISOS								 #
+##############################################################################
+
+# Creamos el usuario admin 
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
+
+# Otorgamos privilegios
+# El usuario 'admin' tiene acceso total a todas las tablas de vuelos
+# y puede crear nuevos usuarios y otorgar privilegios.
+GRANT ALL PRIVILEGES ON vuelos.* TO 'admin'@'localhost' WITH GRANT OPTION;
+
+
+# Creamos el usuario empleado
+CREATE USER 'empleado'@'%' IDENTIFIED BY 'empleado';
+
+# El usuario empleado tiene acceso de lectura sobre todas las tablas
+GRANT SELECT ON vuelos.* TO 'empleado'@'%';
+
+# El usuario empleado tiene privilegios sobres ciertas tablas
+GRANT INSERT,DELETE,UPDATE ON vuelos.reservas TO 'empleado'@'%';
+GRANT INSERT,DELETE,UPDATE ON vuelos.pasajeros TO 'empleado'@'%';
+GRANT INSERT,DELETE,UPDATE ON vuelos.reserva_vuelo_clase TO  'empleado'@'%';
+ 
+
+# Creamos el usuario cliente
+CREATE USER 'cliente'@'%' IDENTIFIED BY 'cliente';
+GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
+
+# Seteamos permiso de ejecucion para los Stored Procedures (SP)
 GRANT EXECUTE ON PROCEDURE vuelos.reservaSoloIda TO 'empleado'@'%';
 GRANT EXECUTE ON PROCEDURE vuelos.reservaIdaVuelta TO 'empleado'@'%';

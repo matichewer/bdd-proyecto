@@ -69,14 +69,17 @@ public class DAOReservaImpl implements DAOReserva {
 			 cstmt.setInt(6, empleado.getLegajo());	  
 
 			 ResultSet rs = cstmt.executeQuery();
-	        	if (rs.next()) {
-	        		String resultado = rs.getString("resultado");
-	        		logger.debug(resultado);
-	        		if (resultado.equals("Reserva exitosa"))
-	        			numeroDeReserva = rs.getInt("numero_reserva");
-	        		else
-	        		 	throw new Exception(resultado);
-	        	}	 
+			 if (rs.next()) {
+				 String resultado = rs.getString("resultado");
+	        	 logger.debug(resultado);
+	        	 if (resultado.equals("Reserva exitosa")) {
+	        		 numeroDeReserva = rs.getInt("numero_reserva");
+	        	 	 logger.debug("Numero de reserva: " + numeroDeReserva);
+	        	 }
+	        	 else {
+	        		 throw new Exception(resultado);
+	        	 }
+			 }	 
 	         rs.close();
 			 cstmt.close();
 		  }
