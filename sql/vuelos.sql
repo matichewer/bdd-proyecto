@@ -413,7 +413,7 @@ END;!
 
 CREATE PROCEDURE reservaIdaVuelta (IN vuelo_ida VARCHAR(10), IN fecha_ida DATE, IN clase_ida VARCHAR(20), 
 									IN vuelo_vuelta VARCHAR(10), IN fecha_vuelta DATE, IN clase_vuelta VARCHAR(20),
-									IN doc_tipo VARCHAR(45), IN doc_nro INT, IN nro_legajo INT)
+									IN doc_tipo VARCHAR(45), IN doc_nro INT, IN legajo INT)
 BEGIN
 
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
