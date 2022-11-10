@@ -354,6 +354,7 @@ BEGIN
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
 	DECLARE cant_de_reservas INT;
 	DECLARE vencimiento DATE;
+	DECLARE asientos_disp INT;
 
 	# Manejo de excepciones
 	DECLARE codigo_SQL CHAR(5) DEFAULT '00000';
@@ -378,7 +379,7 @@ BEGIN
 					IF EXISTS (SELECT * FROM empleados AS e WHERE (e.legajo = legajo)) THEN
 
 						# Bloqueamos en modo exclusivo la fila en cuestion
-						SELECT *		
+						SELECT cantidad INTO cant_de_reservas
 						FROM asientos_reservados AS a_reservados
 						WHERE ((a_reservados.clase = clase) AND
 								(a_reservados.fecha = fecha) AND
@@ -386,21 +387,16 @@ BEGIN
 						FOR UPDATE;
 						
 						# Obtenemos los asientos disponibles de la VISTA que creamos
-						SET @asientos_disponibles = (SELECT asientos_disponibles 
+						SELECT asientos_disponibles INTO asientos_disp
 														FROM vuelos_disponibles AS vuelos_disp
 														WHERE ((vuelos_disp.nro_vuelo = vuelo) AND 
 																(vuelos_disp.fecha = fecha) AND 
-																(vuelos_disp.clase = clase)));
+																(vuelos_disp.clase = clase));
 
-						IF (@asientos_disponibles > 0) THEN			
-							SET cant_de_reservas = (SELECT cantidad 
-														FROM asientos_reservados AS a_reservados
-														WHERE ((a_reservados.clase = clase) AND
-																(a_reservados.fecha = fecha) AND
-																(a_reservados.vuelo = vuelo)));
+						IF (asientos_disp > 0) THEN			
 							
 							# Seteamos el estado de la reserva
-							IF (cant_de_reservas < @asientos_disponibles) THEN
+							IF (cant_de_reservas < asientos_disp) THEN
 								SET estado_reserva = 'Confirmada';
 							END IF;							
 
@@ -420,11 +416,11 @@ BEGIN
 									(a_reservados.vuelo = vuelo));
 
 
-							SELECT 'La reserva se ha registrado exitosamente' AS resultado;
-							SELECT LAST_INSERT_ID() AS numero_reserva;
+							SELECT 'Reserva exitosa' AS resultado, 
+									LAST_INSERT_ID() AS numero_reserva;
 
 						ELSE
-							SELECT 'ERROR: no hay disponibilidad para ese vuelo y clase' AS resultado, @asientos_disponibles;
+							SELECT 'ERROR: no hay disponibilidad para ese vuelo y clase' AS resultado;
 						END IF;		
 
 					ELSE

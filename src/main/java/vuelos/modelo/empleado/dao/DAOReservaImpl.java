@@ -56,6 +56,7 @@ public class DAOReservaImpl implements DAOReserva {
 		 *		   pero luego deberá propagarla para que el controlador se encargue de manejarla.
 		 */
 		int numeroDeReserva = -1;
+		//String estadoReserva;
 		 try {
 			 String sql = "CALL reservaSoloIda(?, ?, ?, ?, ?, ?)";
 			 CallableStatement cstmt = conexion.prepareCall(sql);  
@@ -67,33 +68,16 @@ public class DAOReservaImpl implements DAOReserva {
 			 cstmt.setInt(5, pasajero.getNroDocumento());
 			 cstmt.setInt(6, empleado.getLegajo());	  
 
-			 boolean hadResults = cstmt.execute();	
-			 // acá podriamos hacer algo con la primer tabla
-			 // ....
-		 
-			 
-			// como la primera tabla no nos importa, pedimos la segunda
-			 hadResults = cstmt.getMoreResults(); 
-			 
-			 if(hadResults) {
-	        	 ResultSet rs = cstmt.getResultSet();	        	 
-	        	 if (rs.next()) {
-	        		 String resultado = rs.getString("resultado");		
-					 logger.debug(resultado);
-	        	 }	 
-	         }
-			 
-			 // Pedimos la tercer tabla
-			 hadResults = cstmt.getMoreResults();
-			 if(hadResults) { 
-				 ResultSet rs = cstmt.getResultSet();	        	 
-	        	 if (rs.next()) {
-	        		 numeroDeReserva = rs.getInt("numero_reserva");		
-					 logger.debug("Numero de reserva: " + numeroDeReserva);
-	        	 }	 
-				 
-			 }
-	 
+			 ResultSet rs = cstmt.executeQuery();
+	        	if (rs.next()) {
+	        		String resultado = rs.getString("resultado");
+	        		logger.debug(resultado);
+	        		if (resultado.equals("Reserva exitosa"))
+	        			numeroDeReserva = rs.getInt("numero_reserva");
+	        		else
+	        		 	throw new Exception(resultado);
+	        	}	 
+	         rs.close();
 			 cstmt.close();
 		  }
 		  catch (SQLException ex){
@@ -204,7 +188,7 @@ public class DAOReservaImpl implements DAOReserva {
 			
 			PreparedStatement stmt = conexion.prepareStatement(sql);
 	        ResultSet rs = stmt.executeQuery(sql);
-	     ArrayList<InstanciaVueloClaseBean> vuelosClase=new  ArrayList<InstanciaVueloClaseBean>(); 
+	     	ArrayList<InstanciaVueloClaseBean> vuelosClase=new  ArrayList<InstanciaVueloClaseBean>(); 
 
 	        if (rs.next()) {
 	        	reserva = new ReservaBeanImpl();
