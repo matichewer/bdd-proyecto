@@ -323,8 +323,9 @@ BEGIN
 
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
 	DECLARE cant_de_reservas INT;
-	DECLARE vencimiento DATE;
 	DECLARE asientos_disp INT;
+	DECLARE asientos INT;
+	DECLARE vencimiento DATE;
 
 	# Manejo de excepciones
 	DECLARE codigo_SQL CHAR(5) DEFAULT '00000';
@@ -358,15 +359,22 @@ BEGIN
 						
 						# Obtenemos los asientos disponibles de la VISTA que creamos
 						SELECT asientos_disponibles INTO asientos_disp
-														FROM vuelos_disponibles AS vuelos_disp
-														WHERE ((vuelos_disp.nro_vuelo = vuelo) AND 
-																(vuelos_disp.fecha = fecha) AND 
-																(vuelos_disp.clase = clase));
+						FROM vuelos_disponibles AS vuelos_disp
+						WHERE ((vuelos_disp.nro_vuelo = vuelo) AND 
+								(vuelos_disp.fecha = fecha) AND 
+								(vuelos_disp.clase = clase));
 
-						IF (asientos_disp > 0) THEN			
+
+						IF (asientos_disp > 0) THEN		
+
+							SELECT cant_asientos INTO asientos
+							FROM brinda b NATURAL JOIN instancias_vuelo iv
+							WHERE (b.vuelo = vuelo AND 
+									b.clase = clase AND 
+									iv.fecha = fecha);	
 							
 							# Seteamos el estado de la reserva
-							IF (cant_de_reservas < asientos_disp) THEN
+							IF (cant_de_reservas < asientos) THEN
 								SET estado_reserva = 'Confirmada';
 							END IF;							
 
@@ -419,6 +427,8 @@ BEGIN
 	DECLARE estado_reserva VARCHAR(15) DEFAULT 'En Espera';
 	DECLARE cant_de_reservas_ida INT;
 	DECLARE cant_de_reservas_vuelta INT;
+	DECLARE asientos_ida INT;
+	DECLARE asientos_vuelta INT;
 	DECLARE asientos_disp_ida INT;
 	DECLARE asientos_disp_vuelta INT;
 	DECLARE vencimiento_ida DATE;
@@ -465,8 +475,8 @@ BEGIN
 						WHERE ((a_reservados.clase = clase_vuelta) AND
 								(a_reservados.fecha = fecha_vuelta) AND
 								(a_reservados.vuelo = vuelo_vuelta))
-						FOR UPDATE;
-						
+						FOR UPDATE;					
+
 
 						# Obtenemos los asientos disponibles de IDA de la VISTA
 						SELECT asientos_disponibles INTO asientos_disp_ida
@@ -480,15 +490,26 @@ BEGIN
 						FROM vuelos_disponibles AS vuelos_disp
 						WHERE ((vuelos_disp.nro_vuelo = vuelo_vuelta) AND 
 								(vuelos_disp.fecha = fecha_vuelta) AND 
-								(vuelos_disp.clase = clase_vuelta));
-
+								(vuelos_disp.clase = clase_vuelta));	
 
 
 						IF (asientos_disp_ida > 0) THEN	
-							IF (asientos_disp_vuelta > 0) THEN	
+							IF (asientos_disp_vuelta > 0) THEN
+
+								SELECT cant_asientos INTO asientos_ida
+								FROM brinda NATURAL JOIN instancias_vuelo
+								WHERE (vuelo = vuelo_ida AND 
+										clase = clase_ida AND 
+										fecha = fecha_ida);
+
+								SELECT cant_asientos INTO asientos_vuelta
+								FROM brinda NATURAL JOIN instancias_vuelo
+								WHERE (vuelo=vuelo_vuelta AND 
+									   clase=clase_vuelta AND 
+									   fecha=fecha_vuelta);
 							
-								# Seteamos el estado de la reserva
-								IF ((cant_de_reservas_ida < asientos_disp_ida) AND (cant_de_reservas_vuelta < asientos_disp_vuelta)) THEN
+								# Por defecto la reserva esta en espera, sino pasa a Confirmada
+								IF ((cant_de_reservas_ida < asientos_ida) AND (cant_de_reservas_vuelta < asientos_vuelta)) THEN
 									SET estado_reserva = 'Confirmada';
 								END IF;		
 
