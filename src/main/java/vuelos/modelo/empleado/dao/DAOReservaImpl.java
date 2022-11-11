@@ -184,8 +184,8 @@ public class DAOReservaImpl implements DAOReserva {
 		ArrayList<InstanciaVueloClaseBean> lista = new ArrayList<InstanciaVueloClaseBean>();
 		try { 
 			
-			String sql1 = "SELECT numero, fecha, vencimiento, doc_tipo, doc_nro, legajo, estado, IF(COUNT(*)='2','si', 'no') AS idaVuelta"
-						+ "FROM reservas NATURAL JOIN reserva_vuelo_clase"
+			String sql1 = "SELECT numero, fecha, vencimiento, doc_tipo, doc_nro, legajo, estado, IF(COUNT(*)='2','si', 'no') AS idaVuelta "
+						+ "FROM reservas NATURAL JOIN reserva_vuelo_clase "
 						+ "WHERE numero=" + codigoReserva;
 
 			logger.debug(sql1);
@@ -215,7 +215,7 @@ public class DAOReservaImpl implements DAOReserva {
 	        String sql2 = "SELECT DISTINCT fecha, ciudad_sale, estado_sale, pais_sale, u_sale.huso AS huso_sale, ciudad_llega, estado_llega, pais_llega, u_llega.huso AS huso_llega "
 	        			+ "FROM ((vuelos_disponibles vd JOIN reserva_vuelo_clase rvc ON vd.nro_vuelo=rvc.vuelo AND vd.fecha=rvc.fecha_vuelo AND vd.clase=rvc.clase) "
 	        			+ "	JOIN ubicaciones u_llega ON u_llega.ciudad=ciudad_llega AND u_llega.pais=pais_llega AND u_llega.estado=estado_llega) "
-	        			+ "	JOIN ubicaciones u_sale ON u_sale.ciudad=ciudad_sale AND u_sale.pais=pais_sale AND u_sale.estado=estado_sale"
+	        			+ "	JOIN ubicaciones u_sale ON u_sale.ciudad=ciudad_sale AND u_sale.pais=pais_sale AND u_sale.estado=estado_sale "
 	        			+ "WHERE rvc.numero= " + codigoReserva;
 
 			logger.debug(sql2);

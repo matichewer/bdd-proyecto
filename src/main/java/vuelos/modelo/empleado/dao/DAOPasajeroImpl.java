@@ -59,10 +59,10 @@ public class DAOPasajeroImpl implements DAOPasajero {
 					pasajero.setDireccion(rs.getString("direccion"));
 					pasajero.setTelefono(rs.getString("telefono"));
 					pasajero.setNacionalidad(rs.getString("nacionalidad"));					
-					logger.debug("Pasajero recuperado: tipoDoc = " + tipoDoc + " y nroDoc = " + nroDoc);
+					logger.debug("Pasajero recuperado: tipoDoc = " + tipoDoc + ", nroDoc = " + nroDoc + ", apellido = " + rs.getString("apellido"));
 					
 				} else {
-					logger.debug("Pasajero no encontrado: tipoDoc = " + tipoDoc + " y nroDoc = " + nroDoc);
+					logger.debug("Pasajero no encontrado: tipoDoc = " + tipoDoc + ", nroDoc = " + nroDoc);
 				}	
 				
 				stmt.close();
