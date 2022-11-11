@@ -12,14 +12,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import vuelos.modelo.empleado.beans.DetalleVueloBean;
+import vuelos.modelo.empleado.beans.DetalleVueloBeanImpl;
 import vuelos.modelo.empleado.beans.EmpleadoBean;
 import vuelos.modelo.empleado.beans.EmpleadoBeanImpl;
 import vuelos.modelo.empleado.beans.InstanciaVueloBean;
+import vuelos.modelo.empleado.beans.InstanciaVueloBeanImpl;
 import vuelos.modelo.empleado.beans.InstanciaVueloClaseBean;
+import vuelos.modelo.empleado.beans.InstanciaVueloClaseBeanImpl;
 import vuelos.modelo.empleado.beans.PasajeroBean;
 import vuelos.modelo.empleado.beans.PasajeroBeanImpl;
 import vuelos.modelo.empleado.beans.ReservaBean;
 import vuelos.modelo.empleado.beans.ReservaBeanImpl;
+import vuelos.modelo.empleado.beans.UbicacionesBean;
+import vuelos.modelo.empleado.beans.UbicacionesBeanImpl;
 import vuelos.modelo.empleado.dao.datosprueba.DAOReservaDatosPrueba;
 import vuelos.utils.Fechas;
 
@@ -172,40 +177,75 @@ public class DAOReservaImpl implements DAOReserva {
 		/*
 		 * Importante, tenga en cuenta de setear correctamente el atributo IdaVuelta con el método setEsIdaVuelta en la ReservaBean
 		 */
-		// Datos estáticos de prueba. Quitar y reemplazar por código que recupera los datos reales.
-		
 
+		ReservaBean reserva = new ReservaBeanImpl();
 		
-		String sql = "SELECT * FROM reservas AS r NATURAL JOIN pasajeros AS p JOIN empleados AS e ON r.legajo=e.legajo  WHERE numero=" + codigoReserva;
-		ReservaBean reserva =null;
-		ArrayList<DetalleVueloBean> lista = new ArrayList<DetalleVueloBean>();
-		try{ 
+		
+		ArrayList<InstanciaVueloClaseBean> lista = new ArrayList<InstanciaVueloClaseBean>();
+		try { 
 			
-			PreparedStatement stmt = conexion.prepareStatement(sql);
-	        ResultSet rs = stmt.executeQuery(sql);
-	     	ArrayList<InstanciaVueloClaseBean> vuelosClase=new  ArrayList<InstanciaVueloClaseBean>(); 
+			String sql1 = "SELECT numero, fecha, vencimiento, doc_tipo, doc_nro, legajo, estado, IF(COUNT(*)='2','si', 'no') AS idaVuelta"
+						+ "FROM reservas NATURAL JOIN reserva_vuelo_clase"
+						+ "WHERE numero=" + codigoReserva;
 
-	        if (rs.next()) {
-	        	reserva = new ReservaBeanImpl();
-	        	reserva.setNumero(rs.getInt("numero"));
-	        	reserva.setFecha(rs.getDate("fecha"));
-	        	reserva.setVencimiento(rs.getDate("vencimiento"));
-	        	reserva.setEstado(rs.getString("estado"));
-	        	
+			logger.debug(sql1);
+			Statement stmt1 = conexion.createStatement();
+		    ResultSet rs1 = stmt1.executeQuery(sql1);			
 
-		        DAOPasajero pasajero = new DAOPasajeroImpl(this.conexion);
-		        DAOEmpleado empleado =new DAOEmpleadoImpl(this.conexion);
-	        	reserva.setEmpleado(empleado.recuperarEmpleado(rs.getInt("legajo")));
-	        	reserva.setPasajero(pasajero.recuperarPasajero(rs.getString("doc_tipo"), rs.getInt("doc_nro")));
-	        
-	        	
-	        	reserva.setEsIdaVuelta(rs.getBoolean("idaVuelta"));
+	        if (rs1.next()) {
+	        	reserva.setNumero(rs1.getInt("numero"));
+	        	reserva.setFecha(rs1.getDate("fecha"));
+	        	reserva.setVencimiento(rs1.getDate("vencimiento"));
+	        	reserva.setEstado(rs1.getString("estado"));
+	        	reserva.setEsIdaVuelta(rs1.getString("idaVuelta").equals("si"));	        	
+
+		        DAOPasajero daoPasajero = new DAOPasajeroImpl(this.conexion);
+		        DAOEmpleado daoEmpleado =new DAOEmpleadoImpl(this.conexion);
+				EmpleadoBean empleado = daoEmpleado.recuperarEmpleado(rs1.getInt("legajo"));
+				PasajeroBean pasajero = daoPasajero.recuperarPasajero(rs1.getString("doc_tipo"),rs1.getInt("doc_nro"));
+				reserva.setEmpleado(empleado);
+				reserva.setPasajero(pasajero);	
 	        	
 	        	logger.debug("Se recuperó la reserva: {}, {}", reserva.getNumero(), reserva.getEstado());	
 	        }   
 	        
-	        stmt.close();
-	        rs.close();
+	        rs1.close();
+	        stmt1.close();
+	        
+	        String sql2 = "SELECT DISTINCT fecha, ciudad_sale, estado_sale, pais_sale, u_sale.huso AS huso_sale, ciudad_llega, estado_llega, pais_llega, u_llega.huso AS huso_llega "
+	        			+ "FROM ((vuelos_disponibles vd JOIN reserva_vuelo_clase rvc ON vd.nro_vuelo=rvc.vuelo AND vd.fecha=rvc.fecha_vuelo AND vd.clase=rvc.clase) "
+	        			+ "	JOIN ubicaciones u_llega ON u_llega.ciudad=ciudad_llega AND u_llega.pais=pais_llega AND u_llega.estado=estado_llega) "
+	        			+ "	JOIN ubicaciones u_sale ON u_sale.ciudad=ciudad_sale AND u_sale.pais=pais_sale AND u_sale.estado=estado_sale"
+	        			+ "WHERE rvc.numero= " + codigoReserva;
+
+			logger.debug(sql2);
+			Statement stmt2 = conexion.createStatement();
+		    ResultSet rs2 = stmt2.executeQuery(sql2);	
+	        
+	        while(rs2.next()) {	
+				UbicacionesBean origen = new UbicacionesBeanImpl();
+				origen.setCiudad(rs2.getString("ciudad_sale"));
+				origen.setEstado(rs2.getString("estado_sale"));
+				origen.setPais(rs2.getString("pais_sale"));
+				origen.setHuso(rs2.getInt("huso_sale"));
+				
+				UbicacionesBean destino = new UbicacionesBeanImpl();
+				destino.setCiudad(rs2.getString("ciudad_llega"));
+				destino.setEstado(rs2.getString("estado_llega"));
+				destino.setPais(rs2.getString("pais_llega"));
+				destino.setHuso(rs2.getInt("huso_llega"));
+
+				DAOVuelosImpl daoVuelos = new DAOVuelosImpl(this.conexion);
+				InstanciaVueloBean vuelo = (daoVuelos.recuperarVuelosDisponibles(rs2.getDate("fecha"), origen, destino)).get(0);				
+				DetalleVueloBean clase = (daoVuelos.recuperarDetalleVuelo(vuelo)).get(0);				
+
+				InstanciaVueloClaseBean toAddToList = new InstanciaVueloClaseBeanImpl();
+				toAddToList.setClase(clase);
+				toAddToList.setVuelo(vuelo);
+
+				lista.add(toAddToList);	        	
+	        }	        
+	        reserva.setVuelosClase(lista);
 		}
 		catch (SQLException ex)
 		{			
@@ -213,12 +253,8 @@ public class DAOReservaImpl implements DAOReserva {
 			logger.error("SQLState: " + ex.getSQLState());
 			logger.error("VendorError: " + ex.getErrorCode());
 			throw new Exception("Error inesperado al consultar la B.D.");
-		}		
-				
-		
-		
+		}	
 		return reserva;
-		// Fin datos estáticos de prueba.
 	}
 	
 
