@@ -212,7 +212,7 @@ public class DAOReservaImpl implements DAOReserva {
 	        rs1.close();
 	        stmt1.close();
 	        
-	        String sql2 = "SELECT DISTINCT fecha, ciudad_sale, estado_sale, pais_sale, u_sale.huso AS huso_sale, ciudad_llega, estado_llega, pais_llega, u_llega.huso AS huso_llega "
+	        String sql2 = "SELECT DISTINCT vuelo, rvc.clase, fecha, ciudad_sale, estado_sale, pais_sale, u_sale.huso AS huso_sale, ciudad_llega, estado_llega, pais_llega, u_llega.huso AS huso_llega "
 	        			+ "FROM ((vuelos_disponibles vd JOIN reserva_vuelo_clase rvc ON vd.nro_vuelo=rvc.vuelo AND vd.fecha=rvc.fecha_vuelo AND vd.clase=rvc.clase) "
 	        			+ "	JOIN ubicaciones u_llega ON u_llega.ciudad=ciudad_llega AND u_llega.pais=pais_llega AND u_llega.estado=estado_llega) "
 	        			+ "	JOIN ubicaciones u_sale ON u_sale.ciudad=ciudad_sale AND u_sale.pais=pais_sale AND u_sale.estado=estado_sale "
@@ -235,17 +235,27 @@ public class DAOReservaImpl implements DAOReserva {
 				destino.setPais(rs2.getString("pais_llega"));
 				destino.setHuso(rs2.getInt("huso_llega"));
 
-				DAOVuelosImpl daoVuelos = new DAOVuelosImpl(this.conexion);
-				InstanciaVueloBean vuelo = (daoVuelos.recuperarVuelosDisponibles(rs2.getDate("fecha"), origen, destino)).get(0);				
-				DetalleVueloBean clase = (daoVuelos.recuperarDetalleVuelo(vuelo)).get(0);				
-
-				InstanciaVueloClaseBean toAddToList = new InstanciaVueloClaseBeanImpl();
-				toAddToList.setClase(clase);
-				toAddToList.setVuelo(vuelo);
-
-				lista.add(toAddToList);	        	
+				DAOVuelosImpl daoVuelos = new DAOVuelosImpl(this.conexion); // si
+				ArrayList<InstanciaVueloBean> l_ivb = daoVuelos.recuperarVuelosDisponibles(rs2.getDate("fecha"), origen, destino);
+				
+				for(InstanciaVueloBean ivb : l_ivb) {
+					if (ivb.getNroVuelo().equals(rs2.getString("vuelo"))) {
+						InstanciaVueloClaseBean ivcb = new InstanciaVueloClaseBeanImpl();
+						ivcb.setVuelo(ivb);
+						ArrayList<DetalleVueloBean> l_dvb = daoVuelos.recuperarDetalleVuelo(ivb);
+						for(DetalleVueloBean dvb : l_dvb) {
+							if (dvb.getClase().equals(rs2.getString("clase"))) {
+								ivcb.setClase(dvb);
+								lista.add(ivcb);
+							}
+						}
+					}
+				}	
 	        }	        
 	        reserva.setVuelosClase(lista);
+	        rs2.close();
+	        stmt2.close();
+	        
 		}
 		catch (SQLException ex)
 		{			
